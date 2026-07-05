@@ -1,0 +1,115 @@
+# Seed program eligibility matrix. Extend as you research more schools.
+# Kwabena's profile: BSc Computer Engineering (First Class), no Masters yet.
+# So `direct_entry` MUST be true for the program to be eligible.
+
+- id: mcgill_cs_msc
+  university: McGill University
+  department: School of Computer Science
+  degree: MSc
+  direct_entry: true            # MSc accepts BSc
+  requires_masters_before_phd: true  # noted for the PhD path
+  gre: false
+  funded: true
+  deadline: "2026-12-15"
+  affiliated_faculty:
+    - David Ifeoluwa Adelani
+  notes: >
+    MSc thesis, funded via TA/RA and Mila supervision.
+    McGill CS PhD requires an MSc, so this is the entry route.
+
+- id: mila_udem_msc
+  university: Université de Montréal
+  department: DIRO / Mila
+  degree: MSc
+  direct_entry: true
+  requires_masters_before_phd: false  # UdeM allows direct-entry PhD in some cases
+  gre: false
+  funded: true
+  deadline: "2026-12-01"
+  affiliated_faculty:
+    - Aaron Courville
+    - Yoshua Bengio
+    - Bang Liu
+  notes: Mila membership through supervisor.
+
+- id: cmu_lti_phd
+  university: Carnegie Mellon University
+  department: Language Technologies Institute
+  degree: PhD
+  direct_entry: true
+  requires_masters_before_phd: false
+  gre: false
+  funded: true
+  deadline: "2026-12-15"
+  affiliated_faculty:
+    - Graham Neubig
+    - Yulia Tsvetkov
+    - Zico Kolter
+  notes: Direct-entry from BSc allowed. Very competitive.
+
+- id: uw_cse_phd
+  university: University of Washington
+  department: Paul G. Allen School of CSE
+  degree: PhD
+  direct_entry: true
+  requires_masters_before_phd: false
+  gre: false
+  funded: true
+  deadline: "2026-12-15"
+  affiliated_faculty:
+    - Noah Smith
+    - Yejin Choi
+  notes: Direct-entry BSc, strong NLP.
+
+- id: umass_cs_phd
+  university: University of Massachusetts Amherst
+  department: Manning College of Information & Computer Sciences
+  degree: PhD
+  direct_entry: true
+  requires_masters_before_phd: false
+  gre: false
+  funded: true
+  deadline: "2026-12-15"
+  affiliated_faculty:
+    - Andrew McCallum
+    - Mohit Iyyer
+  notes: Direct-entry BSc.
+
+- id: jhu_cs_phd
+  university: Johns Hopkins University
+  department: Computer Science / CLSP
+  degree: PhD
+  direct_entry: true
+  requires_masters_before_phd: false
+  gre: false
+  funded: true
+  deadline: "2026-12-15"
+  affiliated_faculty:
+    - Kevin Duh
+    - Philipp Koehn
+    - Eric Nalisnick
+  notes: JHU CLSP strong MT and low-resource NLP.
+
+- id: mbzuai_nlp_msc
+  university: Mohamed bin Zayed University of AI
+  department: Natural Language Processing
+  degree: MSc
+  direct_entry: true
+  requires_masters_before_phd: false
+  gre: false
+  funded: true
+  deadline: "2026-12-31"
+  affiliated_faculty: []
+  notes: Fully funded, focus on multilingual and Arabic NLP; strong low-resource fit.
+
+- id: aims_masters
+  university: African Institute for Mathematical Sciences
+  department: AMMI
+  degree: Masters
+  direct_entry: true
+  requires_masters_before_phd: false
+  gre: false
+  funded: true
+  deadline: "2026-06-15"
+  affiliated_faculty: []
+  notes: African context, ML masters. Safety pick.

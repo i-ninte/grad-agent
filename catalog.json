@@ -1,0 +1,986 @@
+{
+  "projects": {
+    "gh:i-ninte/deriv-rag": {
+      "name": "deriv-rag",
+      "pitch": "Lightweight RAG pipeline that loads local documents, chunks them, builds a FAISS vector index, retrieves relevant context, and generates grounded answers with validated citations using Google Gemini.",
+      "link": "https://github.com/i-ninte/deriv-rag",
+      "tags": [
+        "rag",
+        "retrieval-augmented-generation",
+        "faiss",
+        "vector-search",
+        "gemini",
+        "llm",
+        "document-processing",
+        "chunking",
+        "embeddings",
+        "citation-validation",
+        "json-pipeline"
+      ],
+      "source": "github",
+      "language": "Python",
+      "stars": 0,
+      "promote": true
+    },
+    "gh:i-ninte/portfolio": {
+      "name": "portfolio",
+      "pitch": "Portfolio repository showcasing development work and projects, serving as a central hub for demonstrating technical capabilities and completed implementations across various domains.",
+      "link": "https://github.com/i-ninte/portfolio",
+      "tags": [
+        "portfolio",
+        "github",
+        "project showcase",
+        "development",
+        "repository management"
+      ],
+      "source": "github",
+      "language": "TypeScript",
+      "stars": 0,
+      "promote": false
+    },
+    "gh:i-ninte/geoforest": {
+      "name": "geoforest",
+      "pitch": "We built an automated system that detects deforestation and illegal mining in Ghana using Sentinel-2 satellite imagery, RF-DETR object detection, and temporal vegetation tracking to generate near-real-time forest loss alerts.",
+      "link": "https://github.com/i-ninte/geoforest",
+      "tags": [
+        "satellite imagery",
+        "sentinel-2",
+        "object detection",
+        "rf-detr",
+        "geospatial ml",
+        "vegetation indices",
+        "ndvi",
+        "temporal analysis",
+        "deforestation monitoring",
+        "multispectral imagery",
+        "computer vision",
+        "computer-vision",
+        "forestry",
+        "monitoring"
+      ],
+      "source": "github",
+      "language": "Jupyter Notebook",
+      "stars": 1,
+      "promote": true
+    },
+    "gh:i-ninte/i-ninte": {
+      "name": "i-ninte",
+      "pitch": "I build interpretable, resource-efficient AI systems for healthcare and agriculture across Africa, combining multimodal reasoning with data scarcity solutions for real-world deployment.",
+      "link": "https://github.com/i-ninte/i-ninte",
+      "tags": [
+        "multimodal ai",
+        "healthcare ai",
+        "agricultural computer vision",
+        "data scarcity",
+        "lora adaptation",
+        "yolo",
+        "gradient boosting",
+        "llm fine-tuning",
+        "ensemble methods",
+        "explainability",
+        "global south",
+        "african languages"
+      ],
+      "source": "github",
+      "language": "",
+      "stars": 1,
+      "promote": false
+    },
+    "gh:i-ninte/tillmate": {
+      "name": "tillmate",
+      "pitch": "Mobile ground control station for farmers operating autonomous agricultural machines over WiFi and MAVLink, with real-time monitoring, direct implement control, and mission planning on satellite maps.",
+      "link": "https://github.com/i-ninte/tillmate",
+      "tags": [
+        "mavlink",
+        "react native",
+        "udp",
+        "agricultural robotics",
+        "mission planning",
+        "real-time control",
+        "fastapi",
+        "sqlite/mysql",
+        "esp32",
+        "field automation",
+        "hardware integration",
+        "embedded systems",
+        "agriculture"
+      ],
+      "source": "github",
+      "language": "TypeScript",
+      "stars": 0,
+      "promote": false
+    },
+    "gh:i-ninte/GhanaNLP-data-models-play": {
+      "name": "GhanaNLP-data-models-play",
+      "pitch": "Training notebooks for bidirectional Twi-English neural machine translation, moving from MarianMT baselines toward production-quality models on GhanaNLP's parallel text dataset.",
+      "link": "https://github.com/i-ninte/GhanaNLP-data-models-play",
+      "tags": [
+        "neural machine translation",
+        "twi language",
+        "low-resource nlp",
+        "marianmt",
+        "nllb",
+        "fine-tuning",
+        "sequence-to-sequence",
+        "akan",
+        "ghanaian languages",
+        "bleu evaluation",
+        "back-translation augmentation"
+      ],
+      "source": "github",
+      "language": "Jupyter Notebook",
+      "stars": 0,
+      "promote": true
+    },
+    "gh:i-ninte/DATA-OCEAN": {
+      "name": "DATA-OCEAN",
+      "pitch": "Data-Ocean is a platform for discovering and analyzing ocean-related datasets, connecting researchers with maritime environmental data sources and tools for coastal science applications.",
+      "link": "https://github.com/i-ninte/DATA-OCEAN",
+      "tags": [
+        "data discovery",
+        "ocean science",
+        "environmental data",
+        "maritime",
+        "dataset management",
+        "coastal research",
+        "data cataloging"
+      ],
+      "source": "github",
+      "language": "HTML",
+      "stars": 4,
+      "promote": false
+    },
+    "gh:i-ninte/AIDRE": {
+      "name": "AIDRE",
+      "pitch": "AIDRE",
+      "link": "https://github.com/i-ninte/AIDRE",
+      "tags": [],
+      "source": "github",
+      "language": "HTML",
+      "stars": 0,
+      "promote": false
+    },
+    "gh:i-ninte/tensorflow": {
+      "name": "tensorflow",
+      "pitch": "Custom Keras model class that stacks four specific layer types and routes inputs through them sequentially via a defined call function.",
+      "link": "https://github.com/i-ninte/tensorflow",
+      "tags": [
+        "tensorflow",
+        "keras",
+        "neural networks",
+        "custom model",
+        "deep learning",
+        "layer composition"
+      ],
+      "source": "github",
+      "language": "Jupyter Notebook",
+      "stars": 1,
+      "promote": false
+    },
+    "gh:i-ninte/queryamie": {
+      "name": "queryamie",
+      "pitch": "I built a query tool that helps you search and interact with data more naturally, focusing on making database operations accessible without requiring SQL expertise.",
+      "link": "https://github.com/i-ninte/queryamie",
+      "tags": [
+        "query interface",
+        "database",
+        "data access",
+        "search",
+        "user-friendly tools",
+        "data interaction"
+      ],
+      "source": "github",
+      "language": "Python",
+      "stars": 0,
+      "promote": true
+    },
+    "gh:i-ninte/jobliftai": {
+      "name": "jobliftai",
+      "pitch": "FastAPI backend serving a job matching system with model inference capabilities, handling job candidate matching through API endpoints and integrated ML model scoring.",
+      "link": "https://github.com/i-ninte/jobliftai",
+      "tags": [
+        "fastapi",
+        "backend",
+        "job matching",
+        "ml inference",
+        "rest api",
+        "python",
+        "candidate matching"
+      ],
+      "source": "github",
+      "language": "Python",
+      "stars": 0,
+      "promote": false
+    },
+    "gh:i-ninte/jobmatch-fastapi": {
+      "name": "jobmatch-fastapi",
+      "pitch": "FastAPI backend service for a job matching system, handling model serving and API endpoints to connect job seekers with relevant opportunities through intelligent matching.",
+      "link": "https://github.com/i-ninte/jobmatch-fastapi",
+      "tags": [
+        "fastapi",
+        "backend",
+        "job matching",
+        "api",
+        "python",
+        "model serving",
+        "machine learning"
+      ],
+      "source": "github",
+      "language": "Python",
+      "stars": 0,
+      "promote": false
+    },
+    "gh:i-ninte/ATS": {
+      "name": "ATS",
+      "pitch": "Web tool that uses Gemini 1.5 Flash to score resume matches against job descriptions, extracting PDFs and showing missing keywords for improvement.",
+      "link": "https://github.com/i-ninte/ATS",
+      "tags": [
+        "gemini",
+        "llm",
+        "streamlit",
+        "ats",
+        "resume parsing",
+        "pdf extraction",
+        "job matching",
+        "generative ai",
+        "web app",
+        "llms",
+        "nlp"
+      ],
+      "source": "github",
+      "language": "Python",
+      "stars": 0,
+      "promote": false
+    },
+    "gh:i-ninte/machine_learning": {
+      "name": "machine_learning",
+      "pitch": "Collection of machine learning projects demonstrating decision trees, random forests, and neural networks across image classification, fake news detection, and predictive modeling tasks.",
+      "link": "https://github.com/i-ninte/machine_learning",
+      "tags": [
+        "machine learning",
+        "python",
+        "decision trees",
+        "random forests",
+        "image classification",
+        "fake news detection",
+        "regression",
+        "mean absolute error",
+        "model evaluation",
+        "predictive modeling"
+      ],
+      "source": "github",
+      "language": "Jupyter Notebook",
+      "stars": 3,
+      "promote": false
+    },
+    "gh:i-ninte/OCR-query": {
+      "name": "OCR-query",
+      "pitch": "We built a computer vision system that reads text from images and queries a database with the extracted content, combining OCR with database operations.",
+      "link": "https://github.com/i-ninte/OCR-query",
+      "tags": [
+        "ocr",
+        "computer vision",
+        "text extraction",
+        "database queries",
+        "cv model",
+        "image processing"
+      ],
+      "source": "github",
+      "language": "Jupyter Notebook",
+      "stars": 0,
+      "promote": false
+    },
+    "gh:i-ninte/KNUST-ML-AI": {
+      "name": "KNUST-ML-AI",
+      "pitch": "Educational materials and resources for machine learning and AI training at KNUST's Data Science Club, covering foundational concepts and practical applications.",
+      "link": "https://github.com/i-ninte/KNUST-ML-AI",
+      "tags": [
+        "machine learning",
+        "ai education",
+        "data science",
+        "knust",
+        "teaching materials",
+        "python",
+        "algorithms"
+      ],
+      "source": "github",
+      "language": "Jupyter Notebook",
+      "stars": 0,
+      "promote": false
+    },
+    "gh:i-ninte/data-analytics-R-python": {
+      "name": "data-analytics-R-python",
+      "pitch": "Collection of data analytics projects demonstrating exploratory analysis, visualization, and statistical modeling workflows using R and Python across multiple practical applications.",
+      "link": "https://github.com/i-ninte/data-analytics-R-python",
+      "tags": [
+        "data analytics",
+        "R programming",
+        "Python",
+        "data visualization",
+        "exploratory data analysis",
+        "data cleaning",
+        "statistical modeling",
+        "ggplot2",
+        "pandas",
+        "matplotlib"
+      ],
+      "source": "github",
+      "language": "Jupyter Notebook",
+      "stars": 2,
+      "promote": false
+    },
+    "gh:i-ninte/Aquamind-fullstack": {
+      "name": "Aquamind-fullstack",
+      "pitch": "I'm building a full-stack application called Aquamind with complete frontend and backend infrastructure, handling the full technical stack from database to user interface.",
+      "link": "https://github.com/i-ninte/Aquamind-fullstack",
+      "tags": [
+        "fullstack",
+        "web development",
+        "frontend",
+        "backend",
+        "database",
+        "api",
+        "application architecture"
+      ],
+      "source": "github",
+      "language": "TypeScript",
+      "stars": 0,
+      "promote": false
+    },
+    "gh:i-ninte/computer-vision-and-robotics": {
+      "name": "computer-vision-and-robotics",
+      "pitch": "Building face detection and recognition systems using OpenCV and Haar Cascade classifiers for practical image processing and robotics applications.",
+      "link": "https://github.com/i-ninte/computer-vision-and-robotics",
+      "tags": [
+        "computer vision",
+        "opencv",
+        "face detection",
+        "face recognition",
+        "haar cascade",
+        "image processing",
+        "classifier models",
+        "robotics"
+      ],
+      "source": "github",
+      "language": "Jupyter Notebook",
+      "stars": 1,
+      "promote": false
+    },
+    "gh:i-ninte/student_performance": {
+      "name": "student_performance",
+      "pitch": "I built a system to predict student academic outcomes using historical enrollment and performance data, applying machine learning models to identify at-risk learners early for intervention.",
+      "link": "https://github.com/i-ninte/student_performance",
+      "tags": [
+        "predictive modeling",
+        "education data",
+        "classification",
+        "student analytics",
+        "machine learning",
+        "risk assessment"
+      ],
+      "source": "github",
+      "language": "HTML",
+      "stars": 0,
+      "promote": false
+    },
+    "gh:i-ninte/Aspire": {
+      "name": "Aspire",
+      "pitch": "Aspire",
+      "link": "https://github.com/i-ninte/Aspire",
+      "tags": [],
+      "source": "github",
+      "language": "Jupyter Notebook",
+      "stars": 1,
+      "promote": false
+    },
+    "gh:i-ninte/aquamind-sensors": {
+      "name": "aquamind-sensors",
+      "pitch": "We built IoT sensor systems for water quality monitoring in resource-constrained environments, collecting real-time data on pH, turbidity, and contamination across distributed monitoring networks.",
+      "link": "https://github.com/i-ninte/aquamind-sensors",
+      "tags": [
+        "iot",
+        "sensors",
+        "water quality",
+        "real-time monitoring",
+        "embedded systems",
+        "data collection",
+        "environmental sensing"
+      ],
+      "source": "github",
+      "language": "Python",
+      "stars": 0,
+      "promote": false
+    },
+    "gh:i-ninte/Your_farm": {
+      "name": "Your_farm",
+      "pitch": "FastAPI backend for identifying crop diseases from images, enabling farmers to diagnose plant health problems and take action quickly.",
+      "link": "https://github.com/i-ninte/Your_farm",
+      "tags": [
+        "fastapi",
+        "crop disease detection",
+        "image classification",
+        "agriculture",
+        "computer vision",
+        "python",
+        "rest api"
+      ],
+      "source": "github",
+      "language": "Python",
+      "stars": 0,
+      "promote": false
+    },
+    "gh:i-ninte/gemma-cookbook": {
+      "name": "gemma-cookbook",
+      "pitch": "Collection of practical examples and tutorials for building with Gemma models, covering everything from basic inference to advanced fine-tuning and deployment scenarios.",
+      "link": "https://github.com/i-ninte/gemma-cookbook",
+      "tags": [
+        "gemma",
+        "llm",
+        "inference",
+        "fine-tuning",
+        "prompt engineering",
+        "retrieval augmented generation",
+        "model deployment",
+        "pytorch",
+        "transformers"
+      ],
+      "source": "github",
+      "language": "Jupyter Notebook",
+      "stars": 0,
+      "promote": false
+    },
+    "gh:i-ninte/aquamind1": {
+      "name": "aquamind1",
+      "pitch": "FastAPI service that predicts water quality metrics, enabling real-time monitoring and assessment of aquatic environments through machine learning inference.",
+      "link": "https://github.com/i-ninte/aquamind1",
+      "tags": [
+        "fastapi",
+        "water quality",
+        "machine learning",
+        "prediction",
+        "environmental monitoring",
+        "rest api",
+        "time series",
+        "sensor data"
+      ],
+      "source": "github",
+      "language": "Python",
+      "stars": 0,
+      "promote": false
+    },
+    "gh:i-ninte/Alfido-Tech": {
+      "name": "Alfido-Tech",
+      "pitch": "Three internship projects applying data analytics to real-world problems: building dashboards from Uber trip data, optimizing inventory tracking systems, and analyzing weather patterns for actionable insights.",
+      "link": "https://github.com/i-ninte/Alfido-Tech",
+      "tags": [
+        "data analytics",
+        "dashboard development",
+        "uber data",
+        "inventory management",
+        "weather data",
+        "data visualization",
+        "sql",
+        "business intelligence"
+      ],
+      "source": "github",
+      "language": "HTML",
+      "stars": 1,
+      "promote": false
+    },
+    "gh:i-ninte/odin_": {
+      "name": "odin_",
+      "pitch": "Odin Project teaches web development fundamentals through hands-on exercises covering HTML, CSS, JavaScript, and full-stack frameworks for building real applications.",
+      "link": "https://github.com/i-ninte/odin_",
+      "tags": [
+        "web development",
+        "html",
+        "css",
+        "javascript",
+        "frontend",
+        "full-stack",
+        "project-based learning",
+        "beginners",
+        "practical exercises"
+      ],
+      "source": "github",
+      "language": "HTML",
+      "stars": 2,
+      "promote": false
+    },
+    "gh:i-ninte/DSA": {
+      "name": "DSA",
+      "pitch": "A data structures and algorithms repository covering fundamental CS concepts with implementations and explanations for software engineering interview preparation and practical coding.",
+      "link": "https://github.com/i-ninte/DSA",
+      "tags": [
+        "data structures",
+        "algorithms",
+        "sorting",
+        "searching",
+        "graph algorithms",
+        "dynamic programming",
+        "interview preparation",
+        "implementation reference"
+      ],
+      "source": "github",
+      "language": "Python",
+      "stars": 1,
+      "promote": false
+    },
+    "gh:i-ninte/odin_project": {
+      "name": "odin_project",
+      "pitch": "I'm building web development skills through the Odin Project, working across HTML, CSS, JavaScript, Node.js, and React to create interactive applications and strengthen full-stack fundamentals.",
+      "link": "https://github.com/i-ninte/odin_project",
+      "tags": [
+        "html",
+        "css",
+        "javascript",
+        "node.js",
+        "react",
+        "web development",
+        "full-stack",
+        "frontend",
+        "backend",
+        "responsive design"
+      ],
+      "source": "github",
+      "language": "HTML",
+      "stars": 2,
+      "promote": false
+    },
+    "gh:i-ninte/OOP": {
+      "name": "OOP",
+      "pitch": "C++ implementation of object-oriented programming concepts covering classes, inheritance, polymorphism, and encapsulation with practical code examples.",
+      "link": "https://github.com/i-ninte/OOP",
+      "tags": [
+        "c++",
+        "object-oriented programming",
+        "oop",
+        "classes",
+        "inheritance",
+        "polymorphism",
+        "encapsulation",
+        "design patterns"
+      ],
+      "source": "github",
+      "language": "C++",
+      "stars": 2,
+      "promote": false
+    },
+    "gh:i-ninte/bash": {
+      "name": "bash",
+      "pitch": "Collection of bash scripts progressing from variable basics through control flow to system automation, including server setup and monitoring tools for disk, CPU, memory checks.",
+      "link": "https://github.com/i-ninte/bash",
+      "tags": [
+        "bash scripting",
+        "shell automation",
+        "system administration",
+        "server setup",
+        "system monitoring",
+        "linux",
+        "shell scripting basics",
+        "control flow",
+        "infrastructure automation"
+      ],
+      "source": "github",
+      "language": "Shell",
+      "stars": 1,
+      "promote": false
+    },
+    "gh:i-ninte/SQL_with_BiQquery": {
+      "name": "SQL_with_BiQquery",
+      "pitch": "A repository for learning and working with SQL queries using Google BigQuery, focusing on practical database operations and data analysis techniques.",
+      "link": "https://github.com/i-ninte/SQL_with_BiQquery",
+      "tags": [
+        "sql",
+        "bigquery",
+        "google cloud",
+        "data analysis",
+        "database queries",
+        "data manipulation"
+      ],
+      "source": "github",
+      "language": "Jupyter Notebook",
+      "stars": 3,
+      "promote": false
+    },
+    "gh:i-ninte/Landing_page": {
+      "name": "Landing_page",
+      "pitch": "A landing page repository with minimal description available; appears to be a web project foundation without detailed implementation information to characterize its specific technical approach or purpose.",
+      "link": "https://github.com/i-ninte/Landing_page",
+      "tags": [
+        "web development",
+        "landing page",
+        "frontend",
+        "html",
+        "css"
+      ],
+      "source": "github",
+      "language": "HTML",
+      "stars": 0,
+      "promote": false
+    },
+    "hf:model:ninte/student_performance": {
+      "name": "ninte/student_performance",
+      "pitch": "A model trained to predict student performance outcomes using educational data, enabling educators to identify at-risk learners and personalize interventions based on historical patterns.",
+      "link": "https://huggingface.co/ninte/student_performance",
+      "tags": [
+        "education",
+        "student performance",
+        "predictive modeling",
+        "classification",
+        "supervised learning",
+        "risk assessment",
+        "region:us"
+      ],
+      "source": "huggingface",
+      "downloads": 0,
+      "likes": 0,
+      "promote": true
+    },
+    "hf:model:ninte/car-damage-detection": {
+      "name": "ninte/car-damage-detection",
+      "pitch": "I built a car damage detection model that identifies and localizes vehicle damage from images using computer vision techniques.",
+      "link": "https://huggingface.co/ninte/car-damage-detection",
+      "tags": [
+        "computer vision",
+        "object detection",
+        "damage detection",
+        "image classification",
+        "huggingface",
+        "pytorch",
+        "automotive",
+        "license:mit",
+        "region:us"
+      ],
+      "source": "huggingface",
+      "downloads": 0,
+      "likes": 1,
+      "promote": true
+    },
+    "hf:model:ninte/twi-en-marianmt": {
+      "name": "ninte/twi-en-marianmt",
+      "pitch": "MarianMT model for bidirectional Twi-English translation trained on 10,370 parallel sentences from Ghana, reaching 10.5 BLEU on Twi\u2192English and establishing a functional baseline for low-resource African language translation.",
+      "link": "https://huggingface.co/ninte/twi-en-marianmt",
+      "tags": [
+        "machine translation",
+        "marian",
+        "twi",
+        "akan",
+        "low-resource languages",
+        "african languages",
+        "sequence-to-sequence",
+        "fine-tuning",
+        "bleu",
+        "chrf",
+        "ghana nlp",
+        "safetensors",
+        "translation",
+        "ghana",
+        "low-resource",
+        "tw",
+        "en",
+        "dataset:Ghana-NLP/TWI_ENGLISH_PARALLEL_TEXT",
+        "base_model:Helsinki-NLP/opus-mt-mul-en",
+        "base_model:finetune:Helsinki-NLP/opus-mt-mul-en",
+        "license:cc-by-nc-4.0",
+        "region:us"
+      ],
+      "source": "huggingface",
+      "downloads": 7,
+      "likes": 1,
+      "promote": true
+    },
+    "hf:model:ninte/twi-en-nllb-v2": {
+      "name": "ninte/twi-en-nllb-v2",
+      "pitch": "Fine-tuned NLLB model translating Twi to English on Ghana's low-resource language pair, delivering 27 BLEU against 10.5 baseline through targeted pretraining on 9,600 parallel sentences.",
+      "link": "https://huggingface.co/ninte/twi-en-nllb-v2",
+      "tags": [
+        "machine translation",
+        "nllb",
+        "twi",
+        "akan",
+        "low-resource languages",
+        "seq2seq",
+        "fine-tuning",
+        "ghana",
+        "african languages",
+        "safetensors",
+        "m2m_100",
+        "translation",
+        "low-resource",
+        "tw",
+        "en",
+        "dataset:Ghana-NLP/TWI_ENGLISH_PARALLEL_TEXT",
+        "arxiv:2207.04672",
+        "base_model:facebook/nllb-200-distilled-600M",
+        "base_model:finetune:facebook/nllb-200-distilled-600M",
+        "license:cc-by-nc-4.0",
+        "region:us"
+      ],
+      "source": "huggingface",
+      "downloads": 52,
+      "likes": 1,
+      "promote": true
+    },
+    "local:credit-unions-solution-client": {
+      "name": "credit-unions-solution-client",
+      "pitch": "Next.js frontend application for credit unions, serving as the client interface to manage member accounts and financial operations with modern web standards.",
+      "link": "/Users/ninte/Desktop/NINTE/credit-unions-solution-client",
+      "tags": [
+        "next.js",
+        "react",
+        "typescript",
+        "frontend",
+        "web app",
+        "credit unions",
+        "financial services",
+        "ssr",
+        "vercel deployment"
+      ],
+      "source": "local",
+      "promote": true
+    },
+    "local:tccu": {
+      "name": "tccu",
+      "pitch": "Next.js web application project with TypeScript support, server-side rendering capabilities, and optimized font loading for modern web interfaces.",
+      "link": "/Users/ninte/Desktop/NINTE/tccu",
+      "tags": [
+        "next.js",
+        "react",
+        "typescript",
+        "web development",
+        "ssr",
+        "vercel deployment",
+        "frontend"
+      ],
+      "source": "local",
+      "promote": false
+    },
+    "local:tillmate": {
+      "name": "tillmate",
+      "pitch": "Mobile ground control station for agricultural machines that lets farmers monitor tiller health, control implements, and plan field missions through a 30-second-learnable interface connected via MAVLink over WiFi.",
+      "link": "/Users/ninte/Desktop/NINTE/tillmate",
+      "tags": [
+        "mavlink",
+        "agricultural machinery",
+        "react native",
+        "real-time control",
+        "embedded systems",
+        "gps waypoint planning",
+        "esp32",
+        "pixhawk",
+        "fastapi backend",
+        "mobile gcs",
+        "hardware integration",
+        "iot"
+      ],
+      "source": "local",
+      "promote": false
+    },
+    "local:deriv-rag": {
+      "name": "deriv-rag",
+      "pitch": "A lightweight RAG pipeline that answers questions from local markdown and text documents using FAISS retrieval and Google Gemini generation, with citation validation to keep answers grounded.",
+      "link": "/Users/ninte/Desktop/NINTE/deriv-rag",
+      "tags": [
+        "rag",
+        "retrieval-augmented generation",
+        "faiss",
+        "vector search",
+        "gemini",
+        "llm",
+        "document ingestion",
+        "citation validation",
+        "knowledge base",
+        "json outputs"
+      ],
+      "source": "local",
+      "promote": true
+    },
+    "local:dataocean_backend": {
+      "name": "dataocean_backend",
+      "pitch": "FastAPI backend handling question management, submission tracking, contact forms, and Google Meet scheduling with automated email notifications for a consultancy website.",
+      "link": "/Users/ninte/Desktop/NINTE/dataocean_backend",
+      "tags": [
+        "fastapi",
+        "sqlalchemy",
+        "mysql",
+        "alembic",
+        "smtp",
+        "email automation",
+        "rest api",
+        "database migrations",
+        "python",
+        "google meet integration"
+      ],
+      "source": "local",
+      "promote": false
+    },
+    "local:GhanaNLP-data-models-play": {
+      "name": "GhanaNLP-data-models-play",
+      "pitch": "Building bidirectional Twi-English neural machine translation with MarianMT and NLLB, starting from a v1 baseline and iterating toward production quality on Ghana's most spoken language.",
+      "link": "/Users/ninte/Desktop/NINTE/GhanaNLP-data-models-play",
+      "tags": [
+        "machine translation",
+        "twi language",
+        "marianmt",
+        "nllb",
+        "low-resource languages",
+        "sequence-to-sequence",
+        "fine-tuning",
+        "bleu evaluation",
+        "back-translation",
+        "data cleaning",
+        "akan nlp",
+        "ghanaian languages"
+      ],
+      "source": "local",
+      "promote": true
+    },
+    "local:bbfship": {
+      "name": "bbfship",
+      "pitch": "Full-stack commerce platform built with Next.js and MySQL, featuring WhatsApp ordering, admin catalog management, customer tracking, billing, payments, and templated email workflows for curated storefronts.",
+      "link": "/Users/ninte/Desktop/NINTE/bbfship",
+      "tags": [
+        "nextjs",
+        "react",
+        "typescript",
+        "mysql",
+        "commerce",
+        "whatsapp integration",
+        "nextauth",
+        "email templates",
+        "admin dashboard",
+        "csv bulk upload",
+        "cloudinary",
+        "stored procedures"
+      ],
+      "source": "local",
+      "promote": false
+    },
+    "local:credit-unions-solution-server": {
+      "name": "credit-unions-solution-server",
+      "pitch": "Backend server managing payment processing and financial operations for a credit union banking system, handling transactions and member account interactions.",
+      "link": "/Users/ninte/Desktop/NINTE/credit-unions-solution-server",
+      "tags": [
+        "payment processing",
+        "banking system",
+        "credit union",
+        "backend server",
+        "financial transactions",
+        "account management"
+      ],
+      "source": "local",
+      "promote": true
+    },
+    "local:ecoscan": {
+      "name": "ecoscan",
+      "pitch": "Environmental monitoring dashboard for Ghana combining satellite hotspot detection with community incident reports, built on FastAPI backend and Next.js frontend for law enforcement and environmental agencies.",
+      "link": "/Users/ninte/Desktop/NINTE/ecoscan",
+      "tags": [
+        "fastapi",
+        "next.js",
+        "postgresql",
+        "postgis",
+        "geospatial",
+        "satellite data",
+        "incident tracking",
+        "jwt authentication",
+        "environmental monitoring",
+        "ghana",
+        "dashboard",
+        "mapping"
+      ],
+      "source": "local",
+      "promote": true
+    },
+    "local:skyrush": {
+      "name": "skyrush",
+      "pitch": "Server-authoritative crash game with provably-fair RNG, WebSocket state sync, wallet arbitration, and PostgreSQL audit trail ready for operator integration.",
+      "link": "/Users/ninte/Desktop/NINTE/skyrush",
+      "tags": [
+        "crash game",
+        "game server",
+        "node.js",
+        "typescript",
+        "websocket",
+        "postgresql",
+        "provably fair",
+        "csprng",
+        "wallet arbitration",
+        "idempotent transactions",
+        "gaming backend"
+      ],
+      "source": "local",
+      "promote": false
+    },
+    "local:geoforest": {
+      "name": "geoforest",
+      "pitch": "We built a satellite monitoring system using Sentinel-2 imagery and deep learning to detect forest loss and illegal mining activity in Ghana through vegetation indices and object detection.",
+      "link": "/Users/ninte/Desktop/NINTE/geoforest",
+      "tags": [
+        "satellite imagery",
+        "geospatial machine learning",
+        "multispectral analysis",
+        "object detection",
+        "vegetation indices",
+        "ndvi",
+        "sentinel-2",
+        "deforestation monitoring",
+        "deep learning",
+        "forest degradation",
+        "ghana"
+      ],
+      "source": "local",
+      "promote": true
+    },
+    "local:DEV2WINN": {
+      "name": "DEV2WINN",
+      "pitch": "Full-stack mentorship platform connecting tech learners with AI and human mentors using Claude reasoning, adaptive skill tracking, and intelligent matching algorithms.",
+      "link": "/Users/ninte/Desktop/NINTE/DEV2WINN",
+      "tags": [
+        "nextjs",
+        "express",
+        "fastapi",
+        "claude",
+        "rag",
+        "faiss",
+        "embeddings",
+        "skill mastery",
+        "mentor matching",
+        "mysql",
+        "redis"
+      ],
+      "source": "local",
+      "promote": false
+    },
+    "local:Kyini": {
+      "name": "Kyini",
+      "pitch": "Ghana group travel booking platform where travelers browse and book curated trips with payment processing, while hosts propose trips and admins manage the full marketplace including messaging, refunds, and email campaigns.",
+      "link": "/Users/ninte/Desktop/NINTE/Kyini",
+      "tags": [
+        "next.js",
+        "react",
+        "typescript",
+        "mysql",
+        "nextauth",
+        "paystack",
+        "email delivery",
+        "marketplace",
+        "booking system",
+        "cloudinary",
+        "ghana"
+      ],
+      "source": "local",
+      "promote": false
+    },
+    "local:sikacircle": {
+      "name": "sikacircle",
+      "pitch": "sikacircle",
+      "link": "/Users/ninte/Desktop/NINTE/sikacircle",
+      "tags": [],
+      "source": "local",
+      "promote": false
+    }
+  },
+  "last_synced": "2026-07-05 19:54"
+}

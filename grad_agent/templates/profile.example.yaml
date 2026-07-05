@@ -1,0 +1,46 @@
+# grad-agent profile. Copy to ~/.grad-agent/profile.yaml and edit.
+# The agent reads identity + preferences from here. Do not put secrets here.
+
+name: Your Full Name
+identity_line: a Computer Science graduate from Your University
+portfolio: https://your-portfolio.example.com/
+
+# Absolute paths to your CV and transcript PDFs.
+cv_path: ~/grad/cv.pdf
+transcript_path: ~/grad/transcript.pdf
+
+# Current highest degree. Controls PhD eligibility gating.
+degree_status: bachelors   # bachelors | masters
+
+# Target application cycle.
+target_term: Fall 2027
+target_degree: PhD         # PhD | MSc
+
+# Where drafts are emailed for your review.
+review_email: your.review.inbox@example.com
+
+# Research areas used for the daily arXiv rotation.
+research_areas: [nlp, ai4health, ml, cv]
+
+# Optional: local directory to scan for projects during `grad-agent sync`.
+projects_dir: ~/projects
+
+# Curated flagship projects. These get a scoring bonus over auto-synced ones.
+# Add 3 to 10. Each needs a name, one-line pitch, link, and 5+ tags.
+seed_projects:
+  - name: Project A
+    pitch: One direct sentence describing what you built and the outcome. No cliches. No dashes.
+    link: https://github.com/you/project-a
+    tags: [nlp, llm, low resource, evaluation, retrieval]
+
+  - name: Project B
+    pitch: Another shipped project you would be proud to reference in a cold email.
+    link: https://github.com/you/project-b
+    tags: [cv, yolo, detection, efficient, edge]
+
+# Optional: blog publishing plugin. Off by default.
+blog:
+  enabled: false
+  # backend: portfolio-turso
+  # base_url: https://your-portfolio.example.com
+  # admin_password_env: PORTFOLIO_ADMIN_PASSWORD

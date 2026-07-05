@@ -1,0 +1,53 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "grad-agent"
+version = "0.1.0"
+description = "Autonomous MCP agent for graduate school applications: prof discovery + verified cold emails + SOP drafting + application tracking."
+readme = "README.md"
+requires-python = ">=3.10"
+license = { text = "MIT" }
+authors = [{ name = "Kwabena Obeng", email = "slyobeng111@gmail.com" }]
+keywords = ["mcp", "grad-school", "phd", "cold-email", "sop", "anthropic", "claude", "agent"]
+classifiers = [
+  "Development Status :: 3 - Alpha",
+  "Intended Audience :: Education",
+  "License :: OSI Approved :: MIT License",
+  "Programming Language :: Python :: 3.10",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "Topic :: Education",
+]
+dependencies = [
+  "fastmcp>=0.2.0",
+  "httpx>=0.27.0",
+  "python-dotenv>=1.0.0",
+  "feedparser>=6.0.11",
+  "pypdf>=4.0.0",
+  "beautifulsoup4>=4.12.0",
+  "markdown>=3.6",
+  "pymdown-extensions>=10.7",
+  "openpyxl>=3.1",
+  "pandas>=2.0",
+  "anthropic>=0.40",
+  "pyyaml>=6.0",
+]
+
+[project.optional-dependencies]
+blog = []   # portfolio blog publishing tools (loaded lazily)
+dev = ["pytest>=7.4"]
+
+[project.urls]
+Homepage = "https://github.com/i-ninte/grad-agent"
+Issues = "https://github.com/i-ninte/grad-agent/issues"
+
+[project.scripts]
+grad-agent = "grad_agent.cli:main"
+
+[tool.hatch.build.targets.wheel]
+packages = ["grad_agent"]
+
+[tool.hatch.build.targets.wheel.force-include]
+"grad_agent/templates" = "grad_agent/templates"

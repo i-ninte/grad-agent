@@ -1,0 +1,8 @@
+.env
+db.sqlite
+drafts/
+__pycache__/
+*.pyc
+.venv/
+*.log
+*.xlsx
