@@ -98,11 +98,42 @@ def cmd_sync(args: argparse.Namespace) -> int:
     return 0
 
 
+def _resolve_grad_agent_exe() -> str:
+    """Return the command Claude Code should run to launch this install.
+    Order of preference:
+      1. `grad-agent` on PATH  (clean form, works after `pipx ensurepath`)
+      2. sys.argv[0] if it looks like a grad-agent script  (matches how the
+         user just invoked us)
+      3. A `grad-agent` binary next to the current Python  (pipx layout)
+      4. `<sys.executable> -m grad_agent.cli`  (universal fallback)
+    """
+    from pathlib import Path
+
+    on_path = shutil.which("grad-agent")
+    if on_path:
+        return on_path
+
+    argv0 = Path(sys.argv[0]) if sys.argv and sys.argv[0] else None
+    if argv0 and argv0.is_absolute() and argv0.name.startswith("grad-agent"):
+        return str(argv0)
+
+    adj = Path(sys.executable).parent / "grad-agent"
+    if adj.exists():
+        return str(adj)
+
+    return f"{sys.executable} -m grad_agent.cli"
+
+
 def cmd_register_claude(_: argparse.Namespace) -> int:
-    exe = shutil.which("grad-agent") or sys.executable + " -m grad_agent.cli"
+    exe = _resolve_grad_agent_exe()
+    on_path = shutil.which("grad-agent")
     cmd = f"claude mcp add grad-agent {exe} server"
     print("Run this once to register with Claude Code:\n")
     print(f"    {cmd}\n")
+    if not on_path:
+        print("Note: `grad-agent` is not on your PATH yet.")
+        print("Run `pipx ensurepath` and open a new terminal to get the shorter form")
+        print("`claude mcp add grad-agent grad-agent server`.\n")
     print("Then in a Claude Code session type /mcp to confirm it's connected.")
     return 0
 
