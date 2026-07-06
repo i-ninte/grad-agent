@@ -13,13 +13,25 @@ An autonomous MCP agent that helps you apply to fully funded MS and PhD programs
 - Tracks everything in xlsx: outreach, LOR requests, program deadlines
 - Emails every draft to your inbox for review; nothing is sent to a professor without you
 
-Runs as a stdio MCP server for Claude Code / Claude Desktop, or as a plain CLI.
+Runs as a stdio MCP server for Claude Code / Claude Desktop / any MCP client, or as a plain CLI.
+
+Published on:
+
+- **PyPI**: [`grad-agent`](https://pypi.org/project/grad-agent/)
+- **MCP Registry**: [`io.github.i-ninte/grad-agent`](https://registry.modelcontextprotocol.io/v0/servers?search=io.github.i-ninte/grad-agent)
 
 ## Install
 
+Pick one:
+
 ```bash
+# Recommended for MCP clients (Claude Desktop, Claude Code, etc.)
+uvx grad-agent server      # single-shot, no persistent install
+
+# Persistent CLI install
 pipx install grad-agent
-# or, if you prefer pip in a venv
+
+# Or in a venv
 python3 -m venv .venv && source .venv/bin/activate
 pip install grad-agent
 ```
@@ -83,12 +95,18 @@ Edit `~/Library/Application Support/Claude/claude_desktop_config.json`:
 {
   "mcpServers": {
     "grad-agent": {
-      "command": "grad-agent",
-      "args": ["server"]
+      "command": "uvx",
+      "args": ["grad-agent", "server"]
     }
   }
 }
 ```
+
+The `uvx` command needs no prior install. If you already ran `pipx install grad-agent`,
+you can use `"command": "grad-agent", "args": ["server"]` instead.
+
+Any other MCP client (Cursor, Zed, Windsurf) uses the same manifest shape; just
+point them at `uvx grad-agent server`.
 
 ## Daily autonomous run (macOS)
 
