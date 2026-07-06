@@ -81,11 +81,29 @@ grad-agent run         # one batch, drafts land in your inbox
 
 ## Register with Claude Code
 
+Three commands, in order:
+
 ```bash
-grad-agent register-claude
+pipx install grad-agent
+pipx ensurepath                              # opens ~/.local/bin on PATH
+claude mcp add grad-agent grad-agent server
 ```
 
-Prints the exact `claude mcp add` command. Once registered, `/mcp` in Claude Code shows `grad-agent` with ~25 tools.
+Prefer a zero-install one-liner? Skip `pipx` and use `uvx`:
+
+```bash
+claude mcp add grad-agent uvx grad-agent server
+```
+
+Then in a **new** Claude Code session:
+
+```
+/mcp
+```
+
+You should see `grad-agent` connected with ~25 tools. Before it does anything useful, run `grad-agent init` (or `uvx grad-agent init`) and fill in `~/.grad-agent/.env` and `~/.grad-agent/profile.yaml` as described in the setup section above.
+
+If you skipped `pipx ensurepath`, `grad-agent register-claude` prints an absolute-path variant of the command that works without PATH changes.
 
 ## Register with Claude Desktop
 
