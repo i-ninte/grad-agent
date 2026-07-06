@@ -1,5 +1,7 @@
 # grad-agent
 
+<!-- mcp-name: io.github.i-ninte/grad-agent -->
+
 An autonomous MCP agent that helps you apply to fully funded MS and PhD programs.
 
 - Discovers professors on arXiv in your research areas

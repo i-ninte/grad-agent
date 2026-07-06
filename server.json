@@ -1,0 +1,75 @@
+{
+  "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
+  "name": "io.github.i-ninte/grad-agent",
+  "title": "grad-agent",
+  "description": "Autonomous MCP agent for graduate school applications: verified professor discovery, fact-checked cold email drafting, SOP LaTeX compilation, program eligibility gating, and xlsx tracking of outreach, letters of recommendation, and deadlines.",
+  "version": "0.1.2",
+  "repository": {
+    "url": "https://github.com/i-ninte/grad-agent",
+    "source": "github"
+  },
+  "packages": [
+    {
+      "registryType": "pypi",
+      "registryBaseUrl": "https://pypi.org",
+      "identifier": "grad-agent",
+      "version": "0.1.2",
+      "runtimeHint": "uvx",
+      "transport": { "type": "stdio" },
+      "runtimeArguments": [
+        { "type": "positional", "value": "server", "isRequired": true }
+      ],
+      "environmentVariables": [
+        {
+          "name": "ANTHROPIC_API_KEY",
+          "description": "Anthropic API key used by Claude Haiku for hook synthesis and verification.",
+          "isRequired": true,
+          "isSecret": true
+        },
+        {
+          "name": "SMTP_SERVER",
+          "description": "SMTP host for the review mailer.",
+          "isRequired": true,
+          "default": "smtp.gmail.com"
+        },
+        {
+          "name": "SMTP_PORT",
+          "description": "SMTP port.",
+          "isRequired": true,
+          "default": "587"
+        },
+        {
+          "name": "SMTP_USERNAME",
+          "description": "SMTP username; used as From address by default.",
+          "isRequired": true
+        },
+        {
+          "name": "SMTP_PASSWORD",
+          "description": "SMTP password. Gmail App Password recommended.",
+          "isRequired": true,
+          "isSecret": true
+        },
+        {
+          "name": "SMTP_FROM",
+          "description": "Envelope From address for drafts emailed to the user's review inbox.",
+          "isRequired": true
+        },
+        {
+          "name": "GITHUB_TOKEN",
+          "description": "Optional. Personal access token used to enumerate the user's public and private GitHub repos during catalog sync.",
+          "isSecret": true
+        },
+        {
+          "name": "HF_TOKEN",
+          "description": "Optional. HuggingFace token used to enumerate the user's published models and datasets during catalog sync.",
+          "isSecret": true
+        },
+        {
+          "name": "GRAD_AGENT_HOME",
+          "description": "Optional. Override the default ~/.grad-agent/ location for profile, programs, secrets, and data.",
+          "default": "~/.grad-agent"
+        }
+      ]
+    }
+  ]
+}
