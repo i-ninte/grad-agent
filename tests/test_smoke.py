@@ -119,6 +119,109 @@ def test_cold_email_dashless_and_short():
     assert "Analytical engines" in out["body"]
 
 
+def test_region_inference():
+    from grad_agent import regions
+    # keyword table hits (no network, no LLM)
+    assert regions.infer("McGill University") == "Canada"
+    assert regions.infer("Carnegie Mellon University") == "US"
+    assert regions.infer("University of Edinburgh") == "UK"
+    assert regions.infer("KNUST, Kumasi") == "Africa"
+    # empty target list allows everything
+    ok, region = regions.allowed("Stanford University", [])
+    assert ok and region == "US"
+    # region filter blocks out-of-region
+    ok, _ = regions.allowed("University of Tokyo", ["US", "Canada"])
+    assert not ok
+    # alias normalisation
+    ok, _ = regions.allowed("MIT", ["usa"])
+    assert ok
+
+
+def test_outreach_dedup_by_author_id_and_name_variant():
+    import os
+    from grad_agent import outreach_log
+    # fresh log inside the tmp GRAD_AGENT_HOME
+    p = outreach_log._path()
+    if p.exists():
+        os.remove(p)
+    outreach_log.add(prof_name="David Ifeoluwa Adelani", s2_author_id="12345",
+                     area="nlp", project_matched="DummyNLP")
+    # exact authorId match
+    assert outreach_log.already_contacted("Someone Else", author_id="12345")
+    # name-variant match (middle name dropped)
+    assert outreach_log.already_contacted("David Adelani")
+    # different person, different id
+    assert not outreach_log.already_contacted("Ada Lovelace", author_id="99")
+
+
+def test_region_tld_fallback():
+    from grad_agent import regions
+    # affiliation missed by the keyword table, homepage TLD resolves it
+    assert regions._from_tld("https://cs.example.ac.uk/~prof") == "UK"
+    assert regions._from_tld("https://prof.cs.cornell.edu/") == "US"
+    assert regions._from_tld("https://www.univ-obscure.fr/people/x") == "EU"
+    assert regions._from_tld("https://someuni.gh/staff") == "Africa"
+    assert regions._from_tld("") == ""
+    # infer() uses the TLD when keywords fail
+    assert regions.infer("Obscure Institute of Things",
+                         homepage="https://oit.ac.uk/") == "UK"
+    ok, region = regions.allowed("Obscure Institute", ["US"],
+                                 homepage="https://oit.edu/~x")
+    assert ok and region == "US"
+
+
+def test_dedup_no_collision_when_both_ids_known():
+    import os
+    from grad_agent import outreach_log
+    p = outreach_log._path()
+    if p.exists():
+        os.remove(p)
+    outreach_log.add(prof_name="Wei Zhang", s2_author_id="111", area="nlp",
+                     project_matched="DummyNLP")
+    # same normalised name, DIFFERENT authorId: proven distinct, no collision
+    assert not outreach_log.already_contacted("Wei Q. Zhang", author_id="222")
+    # same authorId: duplicate regardless of name spelling
+    assert outreach_log.already_contacted("W. Zhang", author_id="111")
+    # candidate without an id: name fallback still protects against re-drafting
+    assert outreach_log.already_contacted("Wei Zhang")
+
+
+def test_outcome_stats_and_boost():
+    import os
+    from grad_agent import outreach_log
+    p = outreach_log._path()
+    if p.exists():
+        os.remove(p)
+    names = ["Alice Alpha", "Bob Beta", "Carol Gamma", "Dan Delta"]
+    for i, name in enumerate(names):
+        outreach_log.add(prof_name=name, s2_author_id=str(i),
+                         area="nlp", project_matched="DummyNLP")
+        outreach_log.mark_sent(name)
+    outreach_log.mark_response("Alice Alpha", "positive")
+    outreach_log.mark_response("Bob Beta", "positive")
+    stats = outreach_log.outcome_stats()
+    assert stats["total_sent"] == 4
+    assert stats["total_responded"] == 2
+    assert stats["by_project"]["DummyNLP"]["response_rate"] == 0.5
+    boost = outreach_log.project_response_boost(min_sends=3)
+    assert boost.get("DummyNLP", 0) >= 1
+
+
+def test_profile_hot_reload(tmp_path):
+    import os
+    from grad_agent import config
+    home = config.home()
+    profile_file = home / "profile.yaml"
+    original = profile_file.read_text()
+    try:
+        assert config.load_profile().name == "Test User"
+        profile_file.write_text(original.replace("Test User", "Edited User"))
+        # no restart, no cache clear: must pick up the edit immediately
+        assert config.load_profile().name == "Edited User"
+    finally:
+        profile_file.write_text(original)
+
+
 def test_sop_latex_template_renders(tmp_path):
     from grad_agent.drafters import sop_latex
     out = sop_latex.build(

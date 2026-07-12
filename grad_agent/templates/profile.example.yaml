@@ -22,6 +22,11 @@ review_email: your.review.inbox@example.com
 # Research areas used for the daily arXiv rotation.
 research_areas: [nlp, ai4health, ml, cv]
 
+# Optional: only draft for professors in these regions.
+# Supported: US, Canada, UK, EU, Asia, Africa, Australia. Empty = anywhere.
+# Candidates whose region cannot be determined are kept and flagged, not dropped.
+target_regions: []
+
 # Optional: local directory to scan for projects during `grad-agent sync`.
 projects_dir: ~/projects
 

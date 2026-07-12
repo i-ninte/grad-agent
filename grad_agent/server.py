@@ -253,6 +253,20 @@ def outreach_mark_sent(prof_name: str, university: str = "") -> dict:
 
 
 @mcp.tool()
+def outreach_mark_response(prof_name: str, outcome: str, notes: str = "") -> dict:
+    """Tag a prof's reply. outcome: positive | negative | no_response | interview.
+    These tags feed the matcher: projects that earn replies rank up in future runs."""
+    ok = outreach_log.mark_response(prof_name, outcome, notes)
+    return {"updated": ok, "prof_name": prof_name, "outcome": outcome}
+
+
+@mcp.tool()
+def outcome_report() -> dict:
+    """Response-rate report from your tagged outcomes: totals, by area, by project."""
+    return outreach_log.outcome_stats()
+
+
+@mcp.tool()
 def list_programs() -> list[dict]:
     return _programs_mod.all_programs()
 

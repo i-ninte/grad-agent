@@ -15,7 +15,6 @@ Layout under HOME:
 from __future__ import annotations
 import os
 from dataclasses import dataclass, field
-from functools import lru_cache
 from pathlib import Path
 
 try:
@@ -66,6 +65,7 @@ class Profile:
     target_term: str = "Fall 2027"
     target_degree: str = "PhD"           # PhD | MSc
     research_areas: list[str] = field(default_factory=list)
+    target_regions: list[str] = field(default_factory=list)  # e.g. [US, Canada]; empty = anywhere
     projects_dir: str = ""
     seed_projects: list[dict] = field(default_factory=list)
     blog: dict = field(default_factory=dict)     # optional plugin config
@@ -76,8 +76,9 @@ class Profile:
         return (self.degree_status or "").lower() == "masters"
 
 
-@lru_cache(maxsize=1)
 def load_profile() -> Profile:
+    """Re-reads profile.yaml on every call (it is tiny), so edits made while
+    a long-running MCP server session is open take effect immediately."""
     p = profile_path()
     if not p.exists() or yaml is None:
         return Profile()
@@ -92,6 +93,7 @@ def load_profile() -> Profile:
         target_term=data.get("target_term", "Fall 2027"),
         target_degree=data.get("target_degree", "PhD"),
         research_areas=data.get("research_areas", []) or [],
+        target_regions=data.get("target_regions", []) or [],
         projects_dir=str(Path(data.get("projects_dir", "")).expanduser()) if data.get("projects_dir") else "",
         seed_projects=data.get("seed_projects", []) or [],
         blog=data.get("blog", {}) or {},

@@ -128,10 +128,14 @@ def _tokens(text: str) -> set[str]:
     return set(w for w in re.findall(r"[a-z]+", (text or "").lower()) if len(w) > 2)
 
 
-def rank_projects(prof_paper_title: str, prof_paper_abstract: str, area: str = "", top_k: int = 3) -> list[dict]:
+def rank_projects(prof_paper_title: str, prof_paper_abstract: str, area: str = "",
+                  top_k: int = 3, outcome_boost: dict[str, int] | None = None) -> list[dict]:
     """Return the top_k projects most relevant to this prof, scored by tag overlap
     with the paper's title, abstract, and the area label. Each result carries a
-    `score` and `matched_tags` field for auditability."""
+    `score` and `matched_tags` field for auditability.
+
+    outcome_boost maps project name -> extra score, derived from tagged
+    response outcomes in the outreach log (projects that got replies rank up)."""
     surface = " ".join([prof_paper_title or "", prof_paper_abstract or "", area or ""]).lower()
     surface_tokens = _tokens(surface)
     ranked = []
@@ -149,12 +153,16 @@ def rank_projects(prof_paper_title: str, prof_paper_abstract: str, area: str = "
         prior = SRC_PRIOR.get(p.get("source"), 0)
         depth_penalty = 0 if len(p.get("tags", [])) >= 5 else -2
         promote_bonus = 3 if p.get("promote") else 0
-        score = 3 * phrase_hits + token_hits + prior + depth_penalty + promote_bonus
-        ranked.append({**p, "score": score, "matched_tags": matched})
+        learned = (outcome_boost or {}).get(p.get("name", ""), 0)
+        score = 3 * phrase_hits + token_hits + prior + depth_penalty + promote_bonus + learned
+        ranked.append({**p, "score": score, "matched_tags": matched,
+                       "outcome_boost": learned})
     ranked.sort(key=lambda r: r["score"], reverse=True)
     return ranked[:top_k]
 
 
-def best_project(prof_paper_title: str, prof_paper_abstract: str, area: str = "") -> dict:
-    top = rank_projects(prof_paper_title, prof_paper_abstract, area, top_k=1)
+def best_project(prof_paper_title: str, prof_paper_abstract: str, area: str = "",
+                 outcome_boost: dict[str, int] | None = None) -> dict:
+    top = rank_projects(prof_paper_title, prof_paper_abstract, area, top_k=1,
+                        outcome_boost=outcome_boost)
     return top[0] if top else _all_projects()[0]

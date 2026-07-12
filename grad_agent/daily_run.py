@@ -24,6 +24,7 @@ from . import projects
 from . import outreach_log
 from . import hook
 from . import programs
+from . import regions
 
 
 def _area_rotation() -> list[str]:
@@ -62,6 +63,15 @@ def run_batch(n: int = 3, area: str | None = None, dry_run: bool = False) -> dic
     except Exception as e:
         return {"error": f"arxiv search failed for {area}: {e}"}
 
+    profile = _cfg.load_profile()
+    target_regions = profile.target_regions or []
+
+    # Learned bias: projects that earned replies rank up in matching.
+    try:
+        boost = outreach_log.project_response_boost()
+    except Exception:
+        boost = {}
+
     drafts: list[dict] = []
     skipped: list[dict] = []
     seen_this_run: set[str] = set()
@@ -78,7 +88,19 @@ def run_batch(n: int = 3, area: str | None = None, dry_run: bool = False) -> dic
             continue
 
         v = cand["verify"]
-        if outreach_log.already_contacted(prof_full, v.get("affiliations", [""])[0] if v.get("affiliations") else ""):
+        affiliation = v.get("affiliations", [""])[0] if v.get("affiliations") else ""
+
+        # Dedup on the canonical S2 authorId, name fallback for legacy rows.
+        if outreach_log.already_contacted(prof_full, affiliation,
+                                          author_id=v.get("author_id")):
+            continue
+
+        # Region gate. Unknown regions pass through flagged, never dropped.
+        region_ok, region = regions.allowed(affiliation, target_regions,
+                                            homepage=v.get("homepage") or "")
+        if not region_ok:
+            skipped.append({"prof": prof_full,
+                            "why": f"outside target regions ({region}: {affiliation})"})
             continue
 
         # Recent papers for the multi-paper hook
@@ -91,9 +113,10 @@ def run_batch(n: int = 3, area: str | None = None, dry_run: bool = False) -> dic
         # Recruiting + email
         rec = recruiting.signal(v.get("homepage") or "")
 
-        # Match project
+        # Match project (with learned outcome boost)
         surface = " ".join(p.get("title","") + " " + (p.get("abstract") or "") for p in recents[:2])
-        match = projects.best_project(recents[0].get("title",""), surface, area)
+        match = projects.best_project(recents[0].get("title",""), surface, area,
+                                      outcome_boost=boost)
 
         # Hook (multi-paper + verify)
         h = hook.build(
@@ -122,9 +145,11 @@ def run_batch(n: int = 3, area: str | None = None, dry_run: bool = False) -> dic
             "paper_title": recents[0].get("title",""),
             "paper_url": recents[0].get("url",""),
             "area": area,
+            "region": region,
             "project_matched": match["name"],
             "match_score": match["score"],
             "matched_tags": match.get("matched_tags", []),
+            "outcome_boost": match.get("outcome_boost", 0),
             "hook_source": h["source"],
             "hook_attempts": h.get("attempts", 1),
             "hook_verdict": h.get("verification", {}).get("verdict", ""),
@@ -151,23 +176,43 @@ def run_batch(n: int = 3, area: str | None = None, dry_run: bool = False) -> dic
             homepage=v.get("homepage") or "",
             recruiting_signal=("yes" if rec.get("recruiting") else "no" if rec.get("recruiting") is False else "unknown"),
             hook_attempts=d["hook_attempts"], hook_verdict=d["hook_verdict"],
+            s2_author_id=v.get("author_id") or "",
+            region=d.get("region", ""),
         )
 
     # Compose review email
     deadlines = programs.upcoming_deadlines(45)
+    region_note = f"  Regions: {', '.join(target_regions)}" if target_regions else ""
     lines = [
-        f"Daily outreach batch, area: {area}",
+        f"Daily outreach batch, area: {area}{region_note}",
         f"Date: {time.strftime('%Y-%m-%d')}",
-        f"Drafted: {len(drafts)}  Skipped (verification fail): {len(skipped)}",
+        f"Drafted: {len(drafts)}  Skipped: {len(skipped)}",
         "",
     ]
+    # Outcome feedback: what your tagged responses say is working.
+    try:
+        stats = outreach_log.outcome_stats()
+        if stats["total_sent"] > 0:
+            lines.append(
+                f"OUTCOMES SO FAR: {stats['total_sent']} sent, "
+                f"{stats['total_responded']} responded")
+            for proj, a in sorted(stats["by_project"].items(),
+                                  key=lambda kv: -kv[1]["response_rate"])[:5]:
+                lines.append(
+                    f"  {proj}: {a['responded']}/{a['sent']} replies "
+                    f"({int(a['response_rate']*100)}%)")
+            if boost:
+                lines.append(f"  Matching bias applied: {boost}")
+            lines.append("")
+    except Exception:
+        pass
     if deadlines:
         lines.append("UPCOMING DEADLINES (next 45 days):")
         for d in deadlines:
             lines.append(f"  {d['days_left']:>3}d  {d['deadline']}  {d['program']}  {d['university']}")
         lines.append("")
     if skipped:
-        lines.append("Skipped candidates (not verified faculty):")
+        lines.append("Skipped candidates (verification fail or outside regions):")
         for s in skipped[:8]:
             lines.append(f"  - {s['prof']}: {s['why']}")
         lines.append("")
@@ -176,7 +221,7 @@ def run_batch(n: int = 3, area: str | None = None, dry_run: bool = False) -> dic
         lines += [
             "=" * 72,
             f"[{i}] {d['prof_name']}",
-            f"Affiliation: {(v.get('affiliations') or ['unknown'])[0]}",
+            f"Affiliation: {(v.get('affiliations') or ['unknown'])[0]}  [region: {d.get('region', 'unknown')}]",
             f"h-index: {v.get('h_index')}  papers: {v.get('paper_count')}",
             f"Homepage: {v.get('homepage') or '(none on S2 profile)'}",
             f"Recruiting signal: {'YES ' + ', '.join(rec.get('matched', [])[:2]) if rec.get('recruiting') else 'no'}",
