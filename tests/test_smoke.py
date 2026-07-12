@@ -222,6 +222,85 @@ def test_profile_hot_reload(tmp_path):
         profile_file.write_text(original)
 
 
+def test_followups_due_and_nudge():
+    import os
+    import datetime
+    from grad_agent import outreach_log, followups
+    p = outreach_log._path()
+    if p.exists():
+        os.remove(p)
+    old = (datetime.datetime.now() - datetime.timedelta(days=15)).strftime("%Y-%m-%d %H:%M")
+    fresh = datetime.datetime.now().strftime("%Y-%m-%d %H:%M")
+    outreach_log.add(prof_name="Silent Prof", prof_lastname="Prof",
+                     s2_author_id="a1", email_subject="Prospective MSc student",
+                     paper_title="A Paper", sent_to_prof_at=old, status="sent")
+    outreach_log.add(prof_name="Recent Prof", prof_lastname="Prof2",
+                     s2_author_id="a2", sent_to_prof_at=fresh, status="sent")
+    outreach_log.add(prof_name="Replied Prof", prof_lastname="Prof3",
+                     s2_author_id="a3", sent_to_prof_at=old, status="sent")
+    outreach_log.mark_response("Replied Prof", "positive")
+
+    due = followups.build_due(days=10)
+    names = [d["prof_name"] for d in due]
+    assert "Silent Prof" in names          # 15d silent -> due
+    assert "Recent Prof" not in names      # sent today -> not due
+    assert "Replied Prof" not in names     # replied -> not due
+    nudge = due[0]
+    assert nudge["subject"].startswith("Re: ")
+    assert "—" not in nudge["body"] and "–" not in nudge["body"]
+
+    # after marking, it drops off the due list
+    outreach_log.mark_followup_sent("Silent Prof")
+    assert not followups.build_due(days=10)
+
+
+def test_scholarships_gate_and_deadlines(tmp_path):
+    from grad_agent import config, scholarships
+    (config.home() / "scholarships.yaml").write_text(
+        "- id: africa_only\n"
+        "  name: Africa Only Fund\n"
+        "  eligibility_regions: [Africa]\n"
+        "  deadline: '2099-01-01'\n"
+        "- id: open_fund\n"
+        "  name: Open Fund\n"
+        "  eligibility_regions: [any]\n"
+        "  deadline: '2099-01-01'\n"
+    )
+    ids = {s["id"] for s in scholarships.eligible("Africa")}
+    assert ids == {"africa_only", "open_fund"}
+    ids_us = {s["id"] for s in scholarships.eligible("US")}
+    assert ids_us == {"open_fund"}
+    # deadline far in the future: not in a 60 day window
+    assert scholarships.upcoming_deadlines(60) == []
+
+
+def test_tfidf_semantic_score_present():
+    from grad_agent import projects
+    ranked = projects.rank_projects(
+        "Retrieval augmented evaluation for low resource NLP",
+        "We study retrieval and evaluation in low resource settings.",
+        area="nlp", top_k=3,
+    )
+    assert ranked and "semantic_score" in ranked[0]
+
+
+def test_sop_versioning(tmp_path):
+    from grad_agent.drafters import sop_latex
+    kwargs = dict(
+        university="Test U", university_short="Test U",
+        degree_line="PhD in CS", header_left="PS",
+        opening="O.", vision_paragraph="V.",
+        t1_head="A", t1_body="a.", t2_head="B", t2_body="b.",
+        t3_head="C", t3_body="c.", why_university="w.",
+        teaching="t.", long_term="l.", out_dir=str(tmp_path),
+    )
+    r1 = sop_latex.build(**kwargs)
+    r2 = sop_latex.build(**kwargs)
+    assert r1["version"] == 1 and r2["version"] == 2
+    assert r1["tex"].endswith("sop_v1.tex") and r2["tex"].endswith("sop_v2.tex")
+    assert (tmp_path / "sop.tex").exists()  # latest mirror
+
+
 def test_sop_latex_template_renders(tmp_path):
     from grad_agent.drafters import sop_latex
     out = sop_latex.build(

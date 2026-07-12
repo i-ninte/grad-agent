@@ -27,6 +27,7 @@ HEADERS = [
     "recruiting_signal", "hook_attempts", "hook_verdict",
     "responded", "response_at", "outcome",
     "s2_author_id", "region",
+    "fit_score", "fit_reason", "followup_sent_at",
 ]
 
 
@@ -104,45 +105,78 @@ def add(**fields) -> int:
     return n
 
 
-def mark_sent(prof_name: str, university: str = "") -> bool:
+def _set_fields(prof_name: str, values: dict) -> bool:
+    """Set columns on every row matching the normalised prof name. Extends
+    the header in place for columns the file predates."""
     _ensure()
     wb = load_workbook(_path())
     ws = wb["outreach"]
     header = [c.value for c in ws[1]]
+    for col in values:
+        if col not in header:
+            ws.cell(row=1, column=len(header) + 1, value=col)
+            header.append(col)
     target = _norm_name(prof_name)
     updated = False
     for row in ws.iter_rows(min_row=2):
         if _norm_name(str(row[1].value or "")) == target:
-            row[header.index("sent_to_prof_at")].value = time.strftime("%Y-%m-%d %H:%M")
-            row[header.index("status")].value = "sent"
+            for col, val in values.items():
+                ws.cell(row=row[0].row, column=header.index(col) + 1, value=val)
             updated = True
     if updated:
         wb.save(_path())
     return updated
+
+
+def mark_sent(prof_name: str, university: str = "") -> bool:
+    return _set_fields(prof_name, {
+        "sent_to_prof_at": time.strftime("%Y-%m-%d %H:%M"),
+        "status": "sent",
+    })
+
+
+def mark_followup_sent(prof_name: str) -> bool:
+    return _set_fields(prof_name, {
+        "followup_sent_at": time.strftime("%Y-%m-%d"),
+    })
 
 
 def mark_response(prof_name: str, outcome: str, notes: str = "") -> bool:
-    """outcome: positive | negative | no_response | interview | other"""
-    _ensure()
-    wb = load_workbook(_path())
-    ws = wb["outreach"]
-    header = [c.value for c in ws[1]]
-    target = _norm_name(prof_name)
-    updated = False
-    for row in ws.iter_rows(min_row=2):
-        if _norm_name(str(row[1].value or "")) == target:
-            if "responded" in header:
-                row[header.index("responded")].value = "yes" if outcome != "no_response" else "no"
-            if "response_at" in header:
-                row[header.index("response_at")].value = time.strftime("%Y-%m-%d")
-            if "outcome" in header:
-                row[header.index("outcome")].value = outcome
-            if notes and "notes" in header:
-                row[header.index("notes")].value = notes
-            updated = True
-    if updated:
-        wb.save(_path())
-    return updated
+    """outcome: positive | negative | no_response | interview | replied | other"""
+    values = {
+        "responded": "yes" if outcome != "no_response" else "no",
+        "response_at": time.strftime("%Y-%m-%d"),
+        "outcome": outcome,
+    }
+    if notes:
+        values["notes"] = notes
+    return _set_fields(prof_name, values)
+
+
+def followups_due(days: int = 10) -> list[dict]:
+    """Rows that were sent >= `days` ago, have no reply, and no follow-up yet."""
+    import datetime as _dt
+    cutoff = _dt.datetime.now() - _dt.timedelta(days=days)
+    due = []
+    for r in _read_rows():
+        sent = str(r.get("sent_to_prof_at") or "").strip()
+        if not sent:
+            continue
+        if str(r.get("responded") or "").lower() == "yes":
+            continue
+        if str(r.get("followup_sent_at") or "").strip():
+            continue
+        try:
+            sent_dt = _dt.datetime.strptime(sent[:16], "%Y-%m-%d %H:%M")
+        except ValueError:
+            try:
+                sent_dt = _dt.datetime.strptime(sent[:10], "%Y-%m-%d")
+            except ValueError:
+                continue
+        if sent_dt <= cutoff:
+            r["days_since_sent"] = (_dt.datetime.now() - sent_dt).days
+            due.append(r)
+    return due
 
 
 def list_all(limit: int = 100) -> list[dict]:

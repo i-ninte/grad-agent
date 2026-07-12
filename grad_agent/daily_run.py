@@ -25,6 +25,9 @@ from . import outreach_log
 from . import hook
 from . import programs
 from . import regions
+from . import followups
+from . import scholarships
+from .outputs import imap_ingest
 
 
 def _area_rotation() -> list[str]:
@@ -65,6 +68,13 @@ def run_batch(n: int = 3, area: str | None = None, dry_run: bool = False) -> dic
 
     profile = _cfg.load_profile()
     target_regions = profile.target_regions or []
+
+    # Auto-detect replies before anything else, so today's stats and
+    # follow-up list reflect the latest inbox state. Best effort.
+    try:
+        imap_result = imap_ingest.ingest()
+    except Exception as e:
+        imap_result = {"error": str(e)}
 
     # Learned bias: projects that earned replies rank up in matching.
     try:
@@ -126,6 +136,9 @@ def run_batch(n: int = 3, area: str | None = None, dry_run: bool = False) -> dic
             project_tags=match.get("tags", []),
         )
 
+        # Fit score: one cheap call so the user can triage drafts in seconds.
+        fit = hook.fit_score(recents[:3], match["name"], match["pitch"])
+
         # Program suggestion
         prog_hits = programs.match_faculty(prof_full)
         prog_line = prog_hits[0]["id"] if prog_hits else ""
@@ -150,6 +163,7 @@ def run_batch(n: int = 3, area: str | None = None, dry_run: bool = False) -> dic
             "match_score": match["score"],
             "matched_tags": match.get("matched_tags", []),
             "outcome_boost": match.get("outcome_boost", 0),
+            "fit": fit,
             "hook_source": h["source"],
             "hook_attempts": h.get("attempts", 1),
             "hook_verdict": h.get("verification", {}).get("verdict", ""),
@@ -178,7 +192,12 @@ def run_batch(n: int = 3, area: str | None = None, dry_run: bool = False) -> dic
             hook_attempts=d["hook_attempts"], hook_verdict=d["hook_verdict"],
             s2_author_id=v.get("author_id") or "",
             region=d.get("region", ""),
+            fit_score=d.get("fit", {}).get("score", ""),
+            fit_reason=d.get("fit", {}).get("reason", ""),
         )
+
+    # Best fit first, so the strongest draft is the first thing read.
+    drafts.sort(key=lambda d: -(d.get("fit", {}).get("score") or 0))
 
     # Compose review email
     deadlines = programs.upcoming_deadlines(45)
@@ -189,6 +208,12 @@ def run_batch(n: int = 3, area: str | None = None, dry_run: bool = False) -> dic
         f"Drafted: {len(drafts)}  Skipped: {len(skipped)}",
         "",
     ]
+    if imap_result.get("replies_found"):
+        lines.append(f"NEW REPLIES DETECTED (via IMAP): {', '.join(imap_result['tagged'])}")
+        lines.append("")
+    followup_lines = followups.review_email_section(days=10)
+    if followup_lines:
+        lines += followup_lines
     # Outcome feedback: what your tagged responses say is working.
     try:
         stats = outreach_log.outcome_stats()
@@ -207,10 +232,19 @@ def run_batch(n: int = 3, area: str | None = None, dry_run: bool = False) -> dic
     except Exception:
         pass
     if deadlines:
-        lines.append("UPCOMING DEADLINES (next 45 days):")
+        lines.append("UPCOMING PROGRAM DEADLINES (next 45 days):")
         for d in deadlines:
             lines.append(f"  {d['days_left']:>3}d  {d['deadline']}  {d['program']}  {d['university']}")
         lines.append("")
+    try:
+        sch = scholarships.upcoming_deadlines(60)
+        if sch:
+            lines.append("UPCOMING SCHOLARSHIP DEADLINES (next 60 days):")
+            for s in sch:
+                lines.append(f"  {s['days_left']:>3}d  {s['deadline']}  {s['name']}")
+            lines.append("")
+    except Exception:
+        pass
     if skipped:
         lines.append("Skipped candidates (verification fail or outside regions):")
         for s in skipped[:8]:
@@ -220,7 +254,8 @@ def run_batch(n: int = 3, area: str | None = None, dry_run: bool = False) -> dic
         v = d["verify"]; rec = d["recruiting"]; e = d["email"]
         lines += [
             "=" * 72,
-            f"[{i}] {d['prof_name']}",
+            f"[{i}] {d['prof_name']}  FIT: {d.get('fit', {}).get('score', '?')}/10",
+            f"Fit reason: {d.get('fit', {}).get('reason', '')}",
             f"Affiliation: {(v.get('affiliations') or ['unknown'])[0]}  [region: {d.get('region', 'unknown')}]",
             f"h-index: {v.get('h_index')}  papers: {v.get('paper_count')}",
             f"Homepage: {v.get('homepage') or '(none on S2 profile)'}",

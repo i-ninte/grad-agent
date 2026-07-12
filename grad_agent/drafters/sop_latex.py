@@ -9,6 +9,7 @@ Style choices, matched to the user's Columbia SOP:
 Also compiles the .tex to PDF using pdflatex if available.
 """
 from __future__ import annotations
+import re
 import shutil
 import subprocess
 from pathlib import Path
@@ -123,7 +124,19 @@ def build(
         .replace("<<LONG_TERM>>", long_term)
     )
     p = Path(out_dir); p.mkdir(parents=True, exist_ok=True)
-    tex_path = p / "sop.tex"
+    # Versioned drafts: sop_v1.tex, sop_v2.tex, ... never overwrite history.
+    existing = sorted(p.glob("sop_v*.tex"))
+    nums = []
+    for f in existing:
+        m = re.search(r"sop_v(\d+)\.tex$", f.name)
+        if m:
+            nums.append(int(m.group(1)))
+    version = (max(nums) + 1) if nums else 1
+    tex_path = p / f"sop_v{version}.tex"
     tex_path.write_text(tex)
+    # sop.tex always mirrors the latest version for backward compatibility.
+    (p / "sop.tex").write_text(tex)
     pdf_path = _compile(tex_path)
-    return {"tex": str(tex_path), "pdf": str(pdf_path) if pdf_path else None}
+    return {"tex": str(tex_path), "pdf": str(pdf_path) if pdf_path else None,
+            "version": version,
+            "previous_versions": [str(f) for f in existing]}

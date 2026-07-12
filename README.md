@@ -149,8 +149,17 @@ Every morning: 3 verified faculty leads, hooks fact-checked against paper abstra
 | `list_programs()` | Your target programs |
 | `upcoming_deadlines(days)` | Any program deadline in the next N days |
 | `lor_add / lor_outstanding / lor_mark` | Recommendation-letter tracker |
+| `run_program_batch(program_id, n)` | Deadline-driven batch: draft for one program's faculty |
+| `followups_due(days)` | Drafted nudges for profs silent 10+ days |
+| `outreach_mark_followup(prof)` | Record a sent nudge (never nudged twice) |
+| `outreach_mark_response(prof, outcome)` | Tag replies; feeds the matcher's learning loop |
+| `outcome_report()` | Response rates by area and project |
+| `ingest_replies()` | Read-only IMAP scan; auto-tags replies in the log |
+| `interview_prep(prof)` | One-page brief: their papers, likely questions, your talking points |
+| `list_scholarships(region)` | External scholarships filtered by eligibility region |
+| `upcoming_scholarship_deadlines(days)` | Scholarship deadlines approaching |
 | `draft_cold_email(...)` | Manual per-prof draft |
-| `draft_sop(...)` | Compile a Columbia-style SOP PDF for one school |
+| `draft_sop(...)` | Compile a Columbia-style SOP PDF (versioned: sop_v1, v2, ...) |
 | `send_draft_to_me(path)` | Ship any draft file to your review inbox |
 | `discover_profs(area)` | arXiv + OpenReview scan (raw candidates, no verification) |
 

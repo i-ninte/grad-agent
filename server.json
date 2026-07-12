@@ -3,7 +3,7 @@
   "name": "io.github.i-ninte/grad-agent",
   "title": "grad-agent",
   "description": "Autonomous MCP agent for grad school applications: prof discovery, cold emails, SOP, tracking.",
-  "version": "0.1.3",
+  "version": "0.2.0",
   "repository": {
     "url": "https://github.com/i-ninte/grad-agent",
     "source": "github"
@@ -13,7 +13,7 @@
       "registryType": "pypi",
       "registryBaseUrl": "https://pypi.org",
       "identifier": "grad-agent",
-      "version": "0.1.3",
+      "version": "0.2.0",
       "runtimeHint": "uvx",
       "transport": {
         "type": "stdio"

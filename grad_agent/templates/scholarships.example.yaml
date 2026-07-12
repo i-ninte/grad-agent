@@ -1,0 +1,77 @@
+# External scholarship / fellowship tracker. Copy to ~/.grad-agent/scholarships.yaml
+# and edit. Deadlines are checked by the daily run alongside program deadlines.
+# eligibility_regions: citizenship or residency regions that qualify.
+#   Use Africa, Asia, EU, UK, US, Canada, Australia, or "any".
+# VERIFY every deadline yourself; these change year to year.
+
+- id: mastercard_scholars
+  name: Mastercard Foundation Scholars Program
+  funds: Masters at partner universities (full funding + stipend)
+  eligibility_regions: [Africa]
+  url: https://mastercardfdn.org/all/scholars/
+  deadline: "2026-12-01"
+  notes: Per-university deadlines vary; check each partner school.
+
+- id: commonwealth_masters
+  name: Commonwealth Masters Scholarships (UK)
+  funds: One year UK Masters, full funding
+  eligibility_regions: [Africa, Asia]
+  url: https://cscuk.fcdo.gov.uk/scholarships/
+  deadline: "2026-10-15"
+  notes: Requires nomination; Ghana is an eligible Commonwealth country.
+
+- id: chevening
+  name: Chevening Scholarships (UK)
+  funds: One year UK Masters, full funding
+  eligibility_regions: [Africa, Asia]
+  url: https://www.chevening.org/
+  deadline: "2026-11-04"
+  notes: Two years work experience required.
+
+- id: fulbright_foreign
+  name: Fulbright Foreign Student Program (US)
+  funds: US Masters/PhD, full funding
+  eligibility_regions: [Africa, Asia, EU]
+  url: https://foreign.fulbrightonline.org/
+  deadline: "2027-02-28"
+  notes: Apply through the US embassy in your country; Ghana deadline differs.
+
+- id: vanier_canada
+  name: Vanier Canada Graduate Scholarships
+  funds: PhD top-up, 50k CAD/year for 3 years
+  eligibility_regions: [any]
+  url: https://vanier.gc.ca/
+  deadline: "2026-10-29"
+  notes: Requires nomination by the Canadian university.
+
+- id: knight_hennessy
+  name: Knight-Hennessy Scholars (Stanford)
+  funds: Any Stanford graduate degree, full funding
+  eligibility_regions: [any]
+  url: https://knight-hennessy.stanford.edu/
+  deadline: "2026-10-08"
+  notes: Apply alongside the Stanford program application.
+
+- id: gates_cambridge
+  name: Gates Cambridge Scholarship
+  funds: Cambridge Masters/PhD, full funding
+  eligibility_regions: [any]
+  url: https://www.gatescambridge.org/
+  deadline: "2026-12-03"
+  notes: International round deadline; US citizens have an earlier round.
+
+- id: rhodes_west_africa
+  name: Rhodes Scholarship for West Africa
+  funds: Oxford postgraduate study, full funding
+  eligibility_regions: [Africa]
+  url: https://www.rhodeshouse.ox.ac.uk/scholarships/rhodes-scholarships-for-west-africa/
+  deadline: "2026-08-15"
+  notes: Ghana is in the West Africa constituency.
+
+- id: erasmus_mundus
+  name: Erasmus Mundus Joint Masters
+  funds: EU joint Masters, full funding + travel
+  eligibility_regions: [any]
+  url: https://www.eacea.ec.europa.eu/scholarships/erasmus-mundus-catalogue_en
+  deadline: "2027-01-15"
+  notes: Per-consortium deadlines vary widely; this is a typical mid-January date.

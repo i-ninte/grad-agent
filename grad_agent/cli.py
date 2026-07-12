@@ -42,6 +42,11 @@ def cmd_init(args: argparse.Namespace) -> int:
         shutil.copy(tmpl_dir / "programs.example.yaml", programs_dst)
         print(f"wrote {programs_dst}")
 
+    scholarships_dst = home / "scholarships.yaml"
+    if not scholarships_dst.exists() or args.force:
+        shutil.copy(tmpl_dir / "scholarships.example.yaml", scholarships_dst)
+        print(f"wrote {scholarships_dst}")
+
     if env_dst.exists() and not args.force:
         print(f".env already exists at {env_dst}. Use --force to overwrite.")
     else:

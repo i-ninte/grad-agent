@@ -102,6 +102,43 @@ def _verify(paragraph: str, papers: list[dict]) -> dict:
         return {"claims": [], "verdict": "pass", "raw": raw[:400]}
 
 
+FIT_SYSTEM = (
+    "You score how strong a fit a prospective graduate student is for a "
+    "professor, on a 1 to 10 scale, based on the professor's recent papers "
+    "and the student's matched project. 8 to 10 means the student's work is "
+    "directly in the professor's research programme. 5 to 7 means adjacent, "
+    "a credible email but not an obvious match. 1 to 4 means a stretch. "
+    "Return strict JSON: {\"score\": <int>, \"reason\": \"<one sentence, "
+    "no dashes>\"}. Nothing else."
+)
+
+
+def fit_score(papers: list[dict], project_name: str, project_pitch: str) -> dict:
+    """One Haiku call scoring prof-applicant fit. {'score': int, 'reason': str}."""
+    if anthropic is None or not os.environ.get("ANTHROPIC_API_KEY") or not papers:
+        return {"score": 0, "reason": "scoring unavailable"}
+    try:
+        client = anthropic.Anthropic()
+        paper_block = "\n\n".join(
+            f"[{i+1}] {p.get('title','')}\n{(p.get('abstract') or '')[:800]}"
+            for i, p in enumerate(papers[:3])
+        )
+        m = client.messages.create(
+            model=VERIFY_MODEL, max_tokens=150, system=FIT_SYSTEM,
+            messages=[{"role": "user", "content": (
+                f"PROFESSOR'S RECENT PAPERS:\n{paper_block}\n\n"
+                f"STUDENT'S MATCHED PROJECT:\n{project_name}: {project_pitch}\n\n"
+                f"Return the JSON now."
+            )}],
+        )
+        raw = re.sub(r"^```(?:json)?", "", m.content[0].text.strip()).rstrip("`").strip()
+        obj = json.loads(raw)
+        return {"score": int(obj.get("score", 0)),
+                "reason": str(obj.get("reason", ""))[:200]}
+    except Exception as e:
+        return {"score": 0, "reason": f"scoring failed: {e}"}
+
+
 def build(papers: list[dict], project_name: str, project_pitch: str,
           project_tags: list[str], max_retries: int = 2) -> dict:
     """Draft + verify. Retries with tighter instructions if a claim is unsupported."""

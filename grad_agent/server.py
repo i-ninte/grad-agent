@@ -267,6 +267,59 @@ def outcome_report() -> dict:
 
 
 @mcp.tool()
+def followups_due(days: int = 10) -> list[dict]:
+    """Profs emailed `days`+ ago with no reply and no nudge yet, each with a
+    drafted follow-up ready to review and send."""
+    from . import followups as _fu
+    return _fu.build_due(days=days)
+
+
+@mcp.tool()
+def outreach_mark_followup(prof_name: str) -> dict:
+    """Record that you sent the follow-up nudge, so the prof is never nudged twice."""
+    ok = outreach_log.mark_followup_sent(prof_name)
+    return {"updated": ok, "prof_name": prof_name}
+
+
+@mcp.tool()
+def ingest_replies() -> dict:
+    """Read-only IMAP scan: detect professor replies and tag the outreach log.
+    Needs IMAP creds in .env (defaults to Gmail + SMTP credentials)."""
+    from .outputs import imap_ingest as _imap
+    return _imap.ingest()
+
+
+@mcp.tool()
+def run_program_batch(program_id: str, n: int = 3) -> dict:
+    """Deadline-driven batch: verify + draft for faculty of one program from
+    programs.yaml instead of arXiv discovery. Use before application deadlines."""
+    from . import program_targeting as _pt
+    return _pt.run_program_batch(program_id=program_id, n=n)
+
+
+@mcp.tool()
+def interview_prep(prof_name: str, send_to_inbox: bool = True) -> dict:
+    """Generate a one-page interview brief for a prof who replied: their recent
+    papers summarised, likely questions, your talking points, questions to ask."""
+    from . import prep as _prep
+    return _prep.build(prof_name, send_to_inbox=send_to_inbox)
+
+
+@mcp.tool()
+def list_scholarships(region: str = "") -> list[dict]:
+    """External scholarships from scholarships.yaml, optionally filtered by
+    eligibility region (US, Canada, UK, EU, Asia, Africa, Australia)."""
+    from . import scholarships as _sch
+    return _sch.eligible(region)
+
+
+@mcp.tool()
+def upcoming_scholarship_deadlines(days: int = 60, region: str = "") -> list[dict]:
+    from . import scholarships as _sch
+    return _sch.upcoming_deadlines(days=days, user_region=region)
+
+
+@mcp.tool()
 def list_programs() -> list[dict]:
     return _programs_mod.all_programs()
 

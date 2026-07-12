@@ -128,6 +128,49 @@ def _tokens(text: str) -> set[str]:
     return set(w for w in re.findall(r"[a-z]+", (text or "").lower()) if len(w) > 2)
 
 
+# ── TF-IDF semantic layer ─────────────────────────────────────────────
+# Pure-python cosine similarity between the paper text and each project's
+# document (name + pitch + tags). Catches matches the tag table misses and
+# penalises spurious single-tag overlaps, without adding an embedding API.
+
+def _tf(text: str) -> dict[str, float]:
+    words = [w for w in re.findall(r"[a-z]+", (text or "").lower()) if len(w) > 2]
+    if not words:
+        return {}
+    counts: dict[str, int] = {}
+    for w in words:
+        counts[w] = counts.get(w, 0) + 1
+    total = len(words)
+    return {w: c / total for w, c in counts.items()}
+
+
+def _project_doc(p: dict) -> str:
+    return " ".join([p.get("name", ""), p.get("pitch", ""),
+                     " ".join(p.get("tags", []))])
+
+
+def _idf(project_docs: list[str]) -> dict[str, float]:
+    import math
+    n = len(project_docs) or 1
+    df: dict[str, int] = {}
+    for doc in project_docs:
+        for w in set(re.findall(r"[a-z]+", doc.lower())):
+            if len(w) > 2:
+                df[w] = df.get(w, 0) + 1
+    return {w: math.log((n + 1) / (c + 1)) + 1 for w, c in df.items()}
+
+
+def _cosine(tf_a: dict[str, float], tf_b: dict[str, float],
+            idf: dict[str, float]) -> float:
+    import math
+    va = {w: f * idf.get(w, 1.0) for w, f in tf_a.items()}
+    vb = {w: f * idf.get(w, 1.0) for w, f in tf_b.items()}
+    dot = sum(va[w] * vb[w] for w in va.keys() & vb.keys())
+    na = math.sqrt(sum(x * x for x in va.values()))
+    nb = math.sqrt(sum(x * x for x in vb.values()))
+    return dot / (na * nb) if na and nb else 0.0
+
+
 def rank_projects(prof_paper_title: str, prof_paper_abstract: str, area: str = "",
                   top_k: int = 3, outcome_boost: dict[str, int] | None = None) -> list[dict]:
     """Return the top_k projects most relevant to this prof, scored by tag overlap
@@ -143,10 +186,15 @@ def rank_projects(prof_paper_title: str, prof_paper_abstract: str, area: str = "
     SRC_PRIOR = {None: 3, "huggingface": 2, "local": 1, "github": 0}
     all_p = _all_projects()
     any_promoted = any(p.get("promote") for p in all_p)
-    for p in all_p:
-        # Hard filter: if promote flags exist anywhere, only score promoted ones.
-        if any_promoted and not p.get("promote") and p.get("source"):
-            continue
+    scorable = [p for p in all_p
+                if not (any_promoted and not p.get("promote") and p.get("source"))]
+
+    # TF-IDF prep over the scorable pool
+    docs = [_project_doc(p) for p in scorable]
+    idf = _idf(docs)
+    query_tf = _tf(surface)
+
+    for p, doc in zip(scorable, docs):
         matched = [t for t in p["tags"] if any(w in surface for w in t.split())]
         phrase_hits = sum(1 for t in p["tags"] if t in surface)
         token_hits = len(set(w for t in p["tags"] for w in t.split()) & surface_tokens)
@@ -154,9 +202,11 @@ def rank_projects(prof_paper_title: str, prof_paper_abstract: str, area: str = "
         depth_penalty = 0 if len(p.get("tags", [])) >= 5 else -2
         promote_bonus = 3 if p.get("promote") else 0
         learned = (outcome_boost or {}).get(p.get("name", ""), 0)
-        score = 3 * phrase_hits + token_hits + prior + depth_penalty + promote_bonus + learned
+        semantic = round(8 * _cosine(query_tf, _tf(doc), idf))
+        score = (3 * phrase_hits + token_hits + prior + depth_penalty
+                 + promote_bonus + learned + semantic)
         ranked.append({**p, "score": score, "matched_tags": matched,
-                       "outcome_boost": learned})
+                       "outcome_boost": learned, "semantic_score": semantic})
     ranked.sort(key=lambda r: r["score"], reverse=True)
     return ranked[:top_k]
 
