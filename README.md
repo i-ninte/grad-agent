@@ -4,14 +4,28 @@
 
 An autonomous MCP agent that helps you apply to fully funded MS and PhD programs.
 
-- Discovers professors on arXiv in your research areas
-- Verifies each candidate is actually faculty (Semantic Scholar, h-index, papers)
+**Discover and draft**
+
+- Discovers professors on arXiv in your research areas, or deadline-driven per program (`run_program_batch`)
+- Verifies each candidate is actually faculty (Semantic Scholar h-index, papers, affiliation), deduplicated by canonical authorId
+- Filters by region (`target_regions: [US, Canada]` in your profile; keyword table + homepage TLD + LLM fallback)
 - Scrapes their lab page for a recruiting signal + email address
-- Matches them to your strongest shipped project
-- Drafts a specific, fact-checked cold email (Claude Haiku authors + verifies claims against paper abstracts)
-- Compiles a per-school SOP to PDF (LaTeX)
-- Tracks everything in xlsx: outreach, LOR requests, program deadlines
-- Emails every draft to your inbox for review; nothing is sent to a professor without you
+- Matches them to your strongest shipped project (tag overlap + TF-IDF semantic layer + learned response-rate bias)
+- Drafts a specific, fact-checked cold email: Claude Haiku writes a hook spanning the prof's recent papers, then a second call verifies every claim against the abstracts and rewrites anything unsupported
+- Scores each draft 1 to 10 for fit, with a one-line reason, so you can triage in seconds
+
+**Learn and follow through**
+
+- Detects professor replies via read-only IMAP and tags the log automatically
+- Learns from outcomes: projects that earn replies rank up in future matching (`outcome_report` shows what works)
+- Drafts follow-up nudges for profs silent 10+ days; never nudges the same prof twice
+- Generates an interview prep one-pager when a prof replies: their papers summarised, likely questions, your talking points
+
+**Track everything**
+
+- Compiles per-school SOPs to PDF (LaTeX), versioned so no draft is ever overwritten
+- Tracks outreach, LOR requests, program deadlines, and external scholarships (Mastercard, Commonwealth, Fulbright, Rhodes, and more) in xlsx/yaml
+- Emails every draft to your inbox for review; nothing is ever sent to a professor without you
 
 Runs as a stdio MCP server for Claude Code / Claude Desktop / any MCP client, or as a plain CLI.
 
@@ -46,18 +60,21 @@ This writes:
 
 - `~/.grad-agent/profile.yaml` — your identity, projects, preferences
 - `~/.grad-agent/programs.yaml` — target programs (seeded)
+- `~/.grad-agent/scholarships.yaml` — external scholarships with deadlines (seeded)
 - `~/.grad-agent/.env` — secrets template
 
 Fill in `~/.grad-agent/.env`:
 
 ```
 ANTHROPIC_API_KEY=sk-ant-...
-SMTP_SERVER=smtp.gmail.com
+SMTP_SERVER=smtp.gmail.com        # presets for Outlook/Yahoo/Zoho in the template
 SMTP_PORT=587
 SMTP_USERNAME=you@gmail.com
 SMTP_PASSWORD=<gmail app password>
 SMTP_FROM=you@gmail.com
 # Optional:
+S2_API_KEY=                       # free Semantic Scholar key, dedicated rate limits
+IMAP_SERVER=imap.gmail.com        # read-only reply detection; defaults to SMTP creds
 GITHUB_USERNAME=your-gh
 GITHUB_TOKEN=github_pat_...
 HF_USERNAME=your-hf
@@ -70,7 +87,10 @@ Fill in the important bits of `~/.grad-agent/profile.yaml`:
 - `degree_status: bachelors | masters` (drives PhD eligibility gating)
 - `target_term`, `target_degree`
 - `research_areas: [nlp, ai4health, ...]`
+- `target_regions: [US, Canada]` — only draft for profs in these regions (empty = anywhere)
 - `seed_projects:` 3 to 10 flagship projects with `name`, `pitch`, `link`, `tags`
+
+Profile edits apply immediately, even while a long-running MCP session is open.
 
 Then:
 
@@ -101,7 +121,7 @@ Then in a **new** Claude Code session:
 /mcp
 ```
 
-You should see `grad-agent` connected with ~25 tools. Before it does anything useful, run `grad-agent init` (or `uvx grad-agent init`) and fill in `~/.grad-agent/.env` and `~/.grad-agent/profile.yaml` as described in the setup section above.
+You should see `grad-agent` connected with ~34 tools. Before it does anything useful, run `grad-agent init` (or `uvx grad-agent init`) and fill in `~/.grad-agent/.env` and `~/.grad-agent/profile.yaml` as described in the setup section above.
 
 If you skipped `pipx ensurepath`, `grad-agent register-claude` prints an absolute-path variant of the command that works without PATH changes.
 
@@ -135,7 +155,7 @@ cp /path/to/grad_agent/templates/com.gradagent.daily.plist ~/Library/LaunchAgent
 launchctl load ~/Library/LaunchAgents/com.gradagent.daily.plist
 ```
 
-Every morning: 3 verified faculty leads, hooks fact-checked against paper abstracts, in your inbox for review.
+Every morning: replies auto-detected via IMAP, follow-up nudges drafted for silent profs, 3 verified faculty leads with fit scores (best fit first), hooks fact-checked against paper abstracts, plus program and scholarship deadline warnings — all in one review email.
 
 ## What each MCP tool does
 
@@ -168,8 +188,10 @@ Blog publishing tools (`publish_article`, `update_article`, ...) are gated behin
 ## What the agent will not do
 
 - Send any email to a professor. Every send is manual, from your Gmail, after you read the draft.
+- Touch your inbox beyond reading. IMAP access is read-only: it never sends, deletes, or marks messages.
 - Fabricate a paper claim. The hook goes through a second Claude call that rejects any claim not present in the abstracts, and rewrites.
-- Draft for programs you are ineligible for. If your `degree_status` is `bachelors`, PhD programs that require an MSc first are filtered out.
+- Email the same professor twice. Deduplication is keyed on the Semantic Scholar authorId, with a name fallback for legacy rows, and follow-ups are marked so no prof is nudged more than once.
+- Draft for programs you are ineligible for. If your `degree_status` is `bachelors`, PhD programs that require an MSc first are filtered out. Same gate for scholarships outside your eligibility region.
 
 ## Requirements
 
@@ -185,15 +207,19 @@ Everything is under `~/.grad-agent/` by default, or `$GRAD_AGENT_HOME` if set:
 
 ```
 ~/.grad-agent/
-  profile.yaml         identity + preferences
-  programs.yaml        target programs
+  profile.yaml         identity + preferences (regions, seed projects, ...)
+  programs.yaml        target programs with eligibility rules + deadlines
+  scholarships.yaml    external scholarships with region eligibility + deadlines
   .env                 secrets (gitignored)
   data/
-    outreach_log.xlsx  every prof surfaced or drafted
+    outreach_log.xlsx  every prof surfaced or drafted, with fit scores + outcomes
     lor_log.xlsx       recommendation-letter tracker
     catalog.json       synced projects (GitHub + HF + local)
+    s2_cache.json      Semantic Scholar lookups (14 day TTL)
+    region_cache.json  LLM-inferred regions for unusual affiliations
     db.sqlite          drafts + status
-  drafts/              per-school SOP + email drafts
+  drafts/              per-school SOP versions + email drafts
+    prep/              interview prep one-pagers
 ```
 
 ## Contributing
