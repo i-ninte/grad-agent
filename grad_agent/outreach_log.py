@@ -31,14 +31,28 @@ HEADERS = [
 ]
 
 
+SKIP_HEADERS = [
+    "date", "source", "area", "prof_name", "stage", "reason",
+    "paper_title", "arxiv_id", "resolution",
+]
+
+
 def _ensure():
-    if _path().exists():
+    if not _path().exists():
+        wb = Workbook()
+        ws = wb.active
+        ws.title = "outreach"
+        ws.append(HEADERS)
+        ws2 = wb.create_sheet("skipped")
+        ws2.append(SKIP_HEADERS)
+        wb.save(_path())
         return
-    wb = Workbook()
-    ws = wb.active
-    ws.title = "outreach"
-    ws.append(HEADERS)
-    wb.save(_path())
+    # Older files predate the skipped sheet: add it in place.
+    wb = load_workbook(_path())
+    if "skipped" not in wb.sheetnames:
+        ws2 = wb.create_sheet("skipped")
+        ws2.append(SKIP_HEADERS)
+        wb.save(_path())
 
 
 def _norm_name(name: str) -> str:
@@ -223,6 +237,33 @@ def project_response_boost(min_sends: int = 3, boost: int = 4) -> dict[str, int]
         if a["sent"] >= min_sends and a["response_rate"] > 0:
             out[name] = round(boost * a["response_rate"])
     return out
+
+
+def add_skip(prof_name: str, stage: str, reason: str, source: str = "daily",
+             area: str = "", paper_title: str = "", arxiv_id: str = "",
+             resolution: str = "") -> int:
+    """Persist a skipped lead so the mismatch is auditable after the fact.
+    stage: identity | faculty-gate | region | dedup | no-papers"""
+    _ensure()
+    wb = load_workbook(_path())
+    ws = wb["skipped"]
+    ws.append([time.strftime("%Y-%m-%d"), source, area, prof_name, stage,
+               reason, paper_title, arxiv_id, resolution])
+    n = ws.max_row
+    wb.save(_path())
+    return n
+
+
+def list_skipped(limit: int = 50) -> list[dict]:
+    _ensure()
+    wb = load_workbook(_path(), read_only=True)
+    if "skipped" not in wb.sheetnames:
+        return []
+    ws = wb["skipped"]
+    rows = [dict(zip(SKIP_HEADERS, r))
+            for r in ws.iter_rows(min_row=2, values_only=True)
+            if r and r[3]]
+    return rows[-limit:]
 
 
 def path() -> str:

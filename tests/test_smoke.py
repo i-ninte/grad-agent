@@ -284,6 +284,154 @@ def test_tfidf_semantic_score_present():
     assert ranked and "semantic_score" in ranked[0]
 
 
+def test_identity_resolution_tiers(monkeypatch):
+    from grad_agent.sources import semantic_scholar as s2
+
+    def fake_get(path, params, **kw):
+        if path.startswith("/paper/arXiv:1111.11111"):
+            return {"authors": [
+                {"authorId": "junior1", "name": "Ada Junior"},
+                {"authorId": "senior9", "name": "Wei Zhang"},
+            ]}
+        if path == "/author/senior9":
+            return {"authorId": "senior9", "name": "Wei Zhang",
+                    "affiliations": ["Test University"], "hIndex": 20,
+                    "paperCount": 50, "homepage": None, "url": ""}
+        if path == "/author/search":
+            return {"data": [
+                {"authorId": "big", "name": "John Smith", "hIndex": 40,
+                 "paperCount": 200, "affiliations": [], "homepage": None, "url": ""},
+                {"authorId": "small", "name": "John Smith", "hIndex": 38,
+                 "paperCount": 150, "affiliations": [], "homepage": None, "url": ""},
+            ]}
+        return None
+
+    monkeypatch.setattr(s2, "_get", fake_get)
+    monkeypatch.setattr(s2, "recent_papers", lambda aid, limit=50: [])
+    # avoid cross-test cache pollution
+    monkeypatch.setattr(s2, "_cache_load", lambda: {})
+    monkeypatch.setattr(s2, "_cache_save", lambda c: None)
+
+    # Tier 1: paper-anchored, matched by last name inside the author list
+    r = s2.resolve_author("Wei Zhang", arxiv_id="1111.11111", paper_title="X")
+    assert r["resolution"] == "paper-anchored"
+    assert r["author_id"] == "senior9"
+    assert r["ok"]  # h=20, 50 papers, affiliation on record
+
+    # Tier 3: no anchor, validation impossible -> ambiguous, never a guess
+    r = s2.resolve_author("John Smith", arxiv_id="", paper_title="Nonexistent Paper")
+    assert r["resolution"] == "ambiguous" and not r["ok"]
+
+    # Program resolution: two comparable candidates (h=40 vs 38), no
+    # affiliation anchor -> ambiguous rather than dominant
+    r = s2.resolve_for_program("John Smith", "Somewhere University")
+    assert r["resolution"] == "ambiguous"
+
+
+def test_program_dominant_candidate(monkeypatch):
+    from grad_agent.sources import semantic_scholar as s2
+
+    def fake_get(path, params, **kw):
+        if path == "/author/search":
+            return {"data": [
+                {"authorId": "star", "name": "Rare Name", "hIndex": 30,
+                 "paperCount": 100, "affiliations": [], "homepage": None, "url": ""},
+                {"authorId": "homonym", "name": "Rare Name", "hIndex": 2,
+                 "paperCount": 5, "affiliations": [], "homepage": None, "url": ""},
+            ]}
+        return None
+
+    monkeypatch.setattr(s2, "_get", fake_get)
+    r = s2.resolve_for_program("Rare Name", "Anywhere University")
+    assert r["resolution"] == "dominant-candidate"
+    assert r["author_id"] == "star"
+
+    # generic words never anchor: 'University' alone must not match
+    def fake_get2(path, params, **kw):
+        if path == "/author/search":
+            return {"data": [
+                {"authorId": "a", "name": "N", "hIndex": 10, "paperCount": 30,
+                 "affiliations": ["Saarland University"], "homepage": None, "url": ""},
+                {"authorId": "b", "name": "N", "hIndex": 9, "paperCount": 28,
+                 "affiliations": [], "homepage": None, "url": ""},
+            ]}
+        return None
+
+    monkeypatch.setattr(s2, "_get", fake_get2)
+    r = s2.resolve_for_program("N", "McGill University")
+    assert r["resolution"] != "affiliation-anchored"
+
+
+def test_s2_throttle(monkeypatch):
+    from grad_agent.sources import semantic_scholar as s2
+    sleeps: list[float] = []
+    monkeypatch.setattr(s2.time, "sleep", lambda x: sleeps.append(x))
+    monkeypatch.setattr(s2, "_last_request_ts", 0.0)
+    s2._throttle()          # first call: long gap since epoch, no sleep
+    s2._throttle()          # immediate second call: must sleep ~1.1s
+    assert sleeps and sleeps[-1] > 0.9
+
+
+def test_cache_invalidate(monkeypatch):
+    from grad_agent.sources import semantic_scholar as s2
+    store = {
+        "verify:david adelani": {"ts": 9e12, "value": {}},
+        "author:2518906": {"ts": 9e12, "value": {}},
+        "verify:yoav artzi": {"ts": 9e12, "value": {}},
+    }
+    monkeypatch.setattr(s2, "_cache_load", lambda: dict(store))
+    saved = {}
+    monkeypatch.setattr(s2, "_cache_save", lambda c: saved.update({"v": c}))
+    # substring purge removes only matching keys
+    assert s2.cache_invalidate("adelani") == 1
+    assert "verify:david adelani" not in saved["v"]
+    assert "verify:yoav artzi" in saved["v"]
+    # empty query without everything flag is refused
+    assert s2.cache_invalidate("") == 0
+    # everything wipes all
+    assert s2.cache_invalidate(everything=True) == 3
+
+
+def test_skip_log_roundtrip():
+    import os
+    from grad_agent import outreach_log
+    p = outreach_log._path()
+    if p.exists():
+        os.remove(p)
+    outreach_log.add_skip(
+        "John Smith", "identity",
+        "identity ambiguous: 2 comparable candidates (h=40 vs h=38)",
+        source="daily", area="nlp", paper_title="Some Paper",
+        arxiv_id="1234.56789", resolution="ambiguous")
+    rows = outreach_log.list_skipped()
+    assert len(rows) == 1
+    r = rows[0]
+    assert r["stage"] == "identity"
+    assert "h=40 vs h=38" in r["reason"]
+    assert r["arxiv_id"] == "1234.56789"
+
+
+def test_freshness_checks():
+    from grad_agent import freshness
+    # match: distinctive affiliation word appears on the homepage
+    r = freshness.affiliation_check(
+        "Cornell University", "Yoav Artzi, Associate Professor at Cornell Tech")
+    assert r["match"] is True
+    # mismatch: homepage mentions a different institution
+    r = freshness.affiliation_check(
+        "Saarland University", "David Adelani, Assistant Professor, McGill and Mila")
+    assert r["match"] is False and "MISMATCH" in r["note"]
+    # unknowns: empty inputs never claim a match
+    assert freshness.affiliation_check("", "some page")["match"] is None
+    assert freshness.affiliation_check("MIT CSAIL", "")["match"] is None
+    # activity
+    import datetime
+    y = datetime.date.today().year
+    assert freshness.activity_check([{"year": y}])["active"] is True
+    assert freshness.activity_check([{"year": y - 5}])["active"] is False
+    assert freshness.activity_check([])["active"] is None
+
+
 def test_sop_versioning(tmp_path):
     from grad_agent.drafters import sop_latex
     kwargs = dict(

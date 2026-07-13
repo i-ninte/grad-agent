@@ -26,7 +26,7 @@ def _fetch(url: str) -> str:
 
 
 def signal(homepage: str) -> dict:
-    if not homepage: return {"recruiting": None, "matched": [], "email": None}
+    if not homepage: return {"recruiting": None, "matched": [], "email": None, "page_text": ""}
     texts: list[str] = []
     urls = [homepage]
     for tail in ("/prospective", "/students", "/openings", "/join", "/join-us"):
@@ -40,4 +40,6 @@ def signal(homepage: str) -> dict:
     # prefer .edu addresses
     edu = next((e for e in emails if e.lower().endswith(".edu")), None)
     return {"recruiting": bool(matched), "matched": matched[:3],
-            "email": edu or (emails[0] if emails else None)}
+            "email": edu or (emails[0] if emails else None),
+            # first chunk of the homepage itself, for affiliation freshness checks
+            "page_text": (texts[0] if texts else "")[:2000]}

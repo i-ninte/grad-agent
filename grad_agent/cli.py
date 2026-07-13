@@ -148,6 +148,19 @@ def cmd_path(_: argparse.Namespace) -> int:
     return 0
 
 
+def cmd_cache(args: argparse.Namespace) -> int:
+    from .sources import semantic_scholar as s2
+    if args.cache_cmd == "clear":
+        if not args.query and not args.all:
+            print("Give --query NAME to clear matching entries, or --all.")
+            return 1
+        n = s2.cache_invalidate(args.query or "", everything=args.all)
+        print(f"removed {n} cache entr{'y' if n == 1 else 'ies'}")
+        return 0
+    print("unknown cache subcommand")
+    return 1
+
+
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(prog="grad-agent", description=__doc__)
     sub = parser.add_subparsers(dest="cmd")
@@ -176,6 +189,12 @@ def main(argv: list[str] | None = None) -> int:
 
     p_path = sub.add_parser("path", help="Print GRAD_AGENT_HOME")
     p_path.set_defaults(func=cmd_path)
+
+    p_cache = sub.add_parser("cache", help="Manage the Semantic Scholar cache")
+    p_cache.add_argument("cache_cmd", choices=["clear"])
+    p_cache.add_argument("--query", default="", help="substring of author name or id")
+    p_cache.add_argument("--all", action="store_true", help="wipe the whole cache")
+    p_cache.set_defaults(func=cmd_cache)
 
     args = parser.parse_args(argv)
     if not getattr(args, "func", None):

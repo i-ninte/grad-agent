@@ -267,6 +267,24 @@ def outcome_report() -> dict:
 
 
 @mcp.tool()
+def skipped_log_view(limit: int = 25) -> list[dict]:
+    """Audit trail of skipped leads: who was rejected, at which stage
+    (identity / faculty-gate / region / dedup / no-papers), and the specific
+    mismatch that failed (e.g. 'identity ambiguous: 2 comparable candidates')."""
+    return outreach_log.list_skipped(limit=limit)
+
+
+@mcp.tool()
+def s2_cache_invalidate(query: str = "", everything: bool = False) -> dict:
+    """Selectively purge the Semantic Scholar cache. `query` matches author
+    names and ids (substring). Use everything=True to wipe the whole cache.
+    Use after a prof's S2 record changes (new affiliation, merged record)."""
+    from .sources import semantic_scholar as _s2
+    n = _s2.cache_invalidate(query, everything=everything)
+    return {"removed": n, "query": query or ("ALL" if everything else "")}
+
+
+@mcp.tool()
 def followups_due(days: int = 10) -> list[dict]:
     """Profs emailed `days`+ ago with no reply and no nudge yet, each with a
     drafted follow-up ready to review and send."""

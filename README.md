@@ -7,12 +7,15 @@ An autonomous MCP agent that helps you apply to fully funded MS and PhD programs
 **Discover and draft**
 
 - Discovers professors on arXiv in your research areas, or deadline-driven per program (`run_program_batch`)
-- Verifies each candidate is actually faculty (Semantic Scholar h-index, papers, affiliation), deduplicated by canonical authorId
+- Resolves each professor's identity by anchoring on the trigger paper's canonical Semantic Scholar authorId, not the name string — name collisions like "Wei Zhang" are structurally impossible to confuse
+- Refuses to draft when identity cannot be anchored; the specific mismatch (e.g. `identity ambiguous: 2 comparable candidates, h=40 vs h=38`) is persisted to a `skipped` sheet for audit
+- Verifies each candidate is actually faculty (h-index and paper-count gates)
 - Filters by region (`target_regions: [US, Canada]` in your profile; keyword table + homepage TLD + LLM fallback)
 - Scrapes their lab page for a recruiting signal + email address
 - Matches them to your strongest shipped project (tag overlap + TF-IDF semantic layer + learned response-rate bias)
 - Drafts a specific, fact-checked cold email: Claude Haiku writes a hook spanning the prof's recent papers, then a second call verifies every claim against the abstracts and rewrites anything unsupported
 - Scores each draft 1 to 10 for fit, with a one-line reason, so you can triage in seconds
+- **Freshness warnings** on every draft: cross-checks the S2 affiliation against the prof's live homepage (flags `MISMATCH` if they may have moved labs) and flags researchers who have not published in 2+ years
 
 **Learn and follow through**
 
@@ -74,6 +77,7 @@ SMTP_PASSWORD=<gmail app password>
 SMTP_FROM=you@gmail.com
 # Optional:
 S2_API_KEY=                       # free Semantic Scholar key, dedicated rate limits
+                                  # (client-side throttle already enforces >=1.1s between requests)
 IMAP_SERVER=imap.gmail.com        # read-only reply detection; defaults to SMTP creds
 GITHUB_USERNAME=your-gh
 GITHUB_TOKEN=github_pat_...
@@ -121,7 +125,7 @@ Then in a **new** Claude Code session:
 /mcp
 ```
 
-You should see `grad-agent` connected with ~34 tools. Before it does anything useful, run `grad-agent init` (or `uvx grad-agent init`) and fill in `~/.grad-agent/.env` and `~/.grad-agent/profile.yaml` as described in the setup section above.
+You should see `grad-agent` connected with ~36 tools. Before it does anything useful, run `grad-agent init` (or `uvx grad-agent init`) and fill in `~/.grad-agent/.env` and `~/.grad-agent/profile.yaml` as described in the setup section above.
 
 If you skipped `pipx ensurepath`, `grad-agent register-claude` prints an absolute-path variant of the command that works without PATH changes.
 
@@ -155,7 +159,7 @@ cp /path/to/grad_agent/templates/com.gradagent.daily.plist ~/Library/LaunchAgent
 launchctl load ~/Library/LaunchAgents/com.gradagent.daily.plist
 ```
 
-Every morning: replies auto-detected via IMAP, follow-up nudges drafted for silent profs, 3 verified faculty leads with fit scores (best fit first), hooks fact-checked against paper abstracts, plus program and scholarship deadline warnings — all in one review email.
+Every morning: replies auto-detected via IMAP, follow-up nudges drafted for silent profs, 3 identity-verified faculty leads with fit scores (best fit first), hooks fact-checked against paper abstracts, freshness warnings when a prof's S2 record and live homepage disagree, plus program and scholarship deadline warnings — all in one review email. Skipped leads are persisted with the specific mismatch reason (view with `skipped_log_view` or open the `skipped` sheet).
 
 ## What each MCP tool does
 
@@ -170,6 +174,8 @@ Every morning: replies auto-detected via IMAP, follow-up nudges drafted for sile
 | `upcoming_deadlines(days)` | Any program deadline in the next N days |
 | `lor_add / lor_outstanding / lor_mark` | Recommendation-letter tracker |
 | `run_program_batch(program_id, n)` | Deadline-driven batch: draft for one program's faculty |
+| `skipped_log_view(limit)` | Audit trail of skipped leads with the specific stage + mismatch reason |
+| `s2_cache_invalidate(query, all)` | Selectively purge Semantic Scholar cache entries by author name or id |
 | `followups_due(days)` | Drafted nudges for profs silent 10+ days |
 | `outreach_mark_followup(prof)` | Record a sent nudge (never nudged twice) |
 | `outreach_mark_response(prof, outcome)` | Tag replies; feeds the matcher's learning loop |
@@ -191,6 +197,9 @@ Blog publishing tools (`publish_article`, `update_article`, ...) are gated behin
 - Touch your inbox beyond reading. IMAP access is read-only: it never sends, deletes, or marks messages.
 - Fabricate a paper claim. The hook goes through a second Claude call that rejects any claim not present in the abstracts, and rewrites.
 - Email the same professor twice. Deduplication is keyed on the Semantic Scholar authorId, with a name fallback for legacy rows, and follow-ups are marked so no prof is nudged more than once.
+- Draft for the wrong person when two profs share a name. Identity is resolved from the trigger paper's authorId, not the name string; ambiguous cases are refused and logged.
+- Hide why a lead was rejected. Every skip is persisted to the `skipped` sheet in `outreach_log.xlsx` with the stage (identity, faculty-gate, region, dedup, no-papers) and the exact mismatch — not buried in old review emails.
+- Exceed Semantic Scholar's rate limit. Client-side throttle enforces ≥1.1s between requests, with exponential backoff on any 429 or 5xx.
 - Draft for programs you are ineligible for. If your `degree_status` is `bachelors`, PhD programs that require an MSc first are filtered out. Same gate for scholarships outside your eligibility region.
 
 ## Requirements
@@ -212,7 +221,7 @@ Everything is under `~/.grad-agent/` by default, or `$GRAD_AGENT_HOME` if set:
   scholarships.yaml    external scholarships with region eligibility + deadlines
   .env                 secrets (gitignored)
   data/
-    outreach_log.xlsx  every prof surfaced or drafted, with fit scores + outcomes
+    outreach_log.xlsx  outreach sheet (drafts + outcomes) + skipped sheet (audit trail)
     lor_log.xlsx       recommendation-letter tracker
     catalog.json       synced projects (GitHub + HF + local)
     s2_cache.json      Semantic Scholar lookups (14 day TTL)

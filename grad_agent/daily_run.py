@@ -26,6 +26,7 @@ from . import hook
 from . import programs
 from . import regions
 from . import followups
+from . import freshness
 from . import scholarships
 from .outputs import imap_ingest
 
@@ -50,7 +51,11 @@ def _candidate_from_paper(paper: dict) -> dict | None:
     pick = _pick_senior_author(paper.get("authors", []))
     if not pick: return None
     prof_full, prof_last = pick
-    v = s2.verify_by_name(prof_full)
+    # Identity-safe resolution: anchor on the trigger paper's authorId when
+    # possible, validated name search otherwise, ambiguous -> skip.
+    v = s2.resolve_author(prof_full,
+                          arxiv_id=paper.get("arxiv_id", ""),
+                          paper_title=paper.get("title", ""))
     if not v.get("ok"):
         return {"prof_full": prof_full, "prof_last": prof_last, "verify": v, "skip": True}
     return {"prof_full": prof_full, "prof_last": prof_last, "verify": v, "skip": False}
@@ -94,7 +99,13 @@ def run_batch(n: int = 3, area: str | None = None, dry_run: bool = False) -> dic
         if prof_full in seen_this_run: continue
         seen_this_run.add(prof_full)
         if cand["skip"]:
-            skipped.append({"prof": prof_full, "why": cand["verify"].get("reason")})
+            reason = cand["verify"].get("reason") or "verification failed"
+            stage = "identity" if "ambiguous" in reason else "faculty-gate"
+            skipped.append({"prof": prof_full, "why": reason})
+            outreach_log.add_skip(prof_full, stage, reason, source="daily",
+                                  area=area, paper_title=paper.get("title", ""),
+                                  arxiv_id=paper.get("arxiv_id", ""),
+                                  resolution=cand["verify"].get("resolution", ""))
             continue
 
         v = cand["verify"]
@@ -103,14 +114,23 @@ def run_batch(n: int = 3, area: str | None = None, dry_run: bool = False) -> dic
         # Dedup on the canonical S2 authorId, name fallback for legacy rows.
         if outreach_log.already_contacted(prof_full, affiliation,
                                           author_id=v.get("author_id")):
+            outreach_log.add_skip(prof_full, "dedup", "already contacted",
+                                  source="daily", area=area,
+                                  paper_title=paper.get("title", ""),
+                                  arxiv_id=paper.get("arxiv_id", ""),
+                                  resolution=v.get("resolution", ""))
             continue
 
         # Region gate. Unknown regions pass through flagged, never dropped.
         region_ok, region = regions.allowed(affiliation, target_regions,
                                             homepage=v.get("homepage") or "")
         if not region_ok:
-            skipped.append({"prof": prof_full,
-                            "why": f"outside target regions ({region}: {affiliation})"})
+            reason = f"outside target regions ({region}: {affiliation})"
+            skipped.append({"prof": prof_full, "why": reason})
+            outreach_log.add_skip(prof_full, "region", reason, source="daily",
+                                  area=area, paper_title=paper.get("title", ""),
+                                  arxiv_id=paper.get("arxiv_id", ""),
+                                  resolution=v.get("resolution", ""))
             continue
 
         # Recent papers for the multi-paper hook
@@ -139,6 +159,10 @@ def run_batch(n: int = 3, area: str | None = None, dry_run: bool = False) -> dic
         # Fit score: one cheap call so the user can triage drafts in seconds.
         fit = hook.fit_score(recents[:3], match["name"], match["pitch"])
 
+        # Freshness warnings (never gates): current lab + recent activity.
+        aff_fresh = freshness.affiliation_check(affiliation, rec.get("page_text", ""))
+        act_fresh = freshness.activity_check(recents)
+
         # Program suggestion
         prog_hits = programs.match_faculty(prof_full)
         prog_line = prog_hits[0]["id"] if prog_hits else ""
@@ -164,6 +188,8 @@ def run_batch(n: int = 3, area: str | None = None, dry_run: bool = False) -> dic
             "matched_tags": match.get("matched_tags", []),
             "outcome_boost": match.get("outcome_boost", 0),
             "fit": fit,
+            "aff_fresh": aff_fresh,
+            "act_fresh": act_fresh,
             "hook_source": h["source"],
             "hook_attempts": h.get("attempts", 1),
             "hook_verdict": h.get("verification", {}).get("verdict", ""),
@@ -257,6 +283,8 @@ def run_batch(n: int = 3, area: str | None = None, dry_run: bool = False) -> dic
             f"[{i}] {d['prof_name']}  FIT: {d.get('fit', {}).get('score', '?')}/10",
             f"Fit reason: {d.get('fit', {}).get('reason', '')}",
             f"Affiliation: {(v.get('affiliations') or ['unknown'])[0]}  [region: {d.get('region', 'unknown')}]",
+            f"Identity: {v.get('resolution', 'name-search')}",
+            f"Freshness: {d.get('aff_fresh', {}).get('note', '')}  |  {d.get('act_fresh', {}).get('note', '')}",
             f"h-index: {v.get('h_index')}  papers: {v.get('paper_count')}",
             f"Homepage: {v.get('homepage') or '(none on S2 profile)'}",
             f"Recruiting signal: {'YES ' + ', '.join(rec.get('matched', [])[:2]) if rec.get('recruiting') else 'no'}",

@@ -18,6 +18,7 @@ from . import outreach_log
 from . import projects
 from . import programs
 from . import hook
+from . import freshness
 from .drafters import cold_email
 from .outputs import mailer
 from .sources import semantic_scholar as s2, recruiting
@@ -95,20 +96,34 @@ def run_program_batch(program_id: str, n: int = 3, dry_run: bool = False) -> dic
     for name in ordered:
         if len(drafts) >= n:
             break
-        v = s2.verify_by_name(name)
-        # Curated faculty are already human-verified in programs.yaml, so the
-        # strict arXiv-stranger gate does not apply. We only need an S2 record
-        # to fetch papers from; h-index and affiliation gaps are warnings.
+        # Curated faculty are already human-verified in programs.yaml, but the
+        # NAME still has to resolve to the right S2 entity. Anchor on the
+        # program's university; ambiguous identities are skipped, not guessed.
+        v = s2.resolve_for_program(name, prog.get("university", ""))
         if not v.get("author_id"):
-            skipped.append({"prof": name, "why": "no Semantic Scholar record"})
+            reason = v.get("reason", "no S2 record")
+            skipped.append({"prof": name, "why": reason})
+            outreach_log.add_skip(name, "identity", reason,
+                                  source=f"program:{program_id}",
+                                  resolution=v.get("resolution", ""))
             continue
         verification_note = "" if v.get("ok") else f"soft-pass: {v.get('reason')}"
+        if v.get("resolution"):
+            verification_note = (verification_note + "  " if verification_note else "") \
+                                + f"identity: {v['resolution']}"
         if outreach_log.already_contacted(name, author_id=v.get("author_id")):
             skipped.append({"prof": name, "why": "already contacted"})
+            outreach_log.add_skip(name, "dedup", "already contacted",
+                                  source=f"program:{program_id}",
+                                  resolution=v.get("resolution", ""))
             continue
         recents = s2.recent_papers(v["author_id"], limit=5)
         if not recents:
             skipped.append({"prof": name, "why": "no recent papers with abstracts"})
+            outreach_log.add_skip(name, "no-papers",
+                                  "no recent papers with abstracts",
+                                  source=f"program:{program_id}",
+                                  resolution=v.get("resolution", ""))
             continue
         surface = " ".join(p.get("title", "") + " " + (p.get("abstract") or "")
                            for p in recents[:2])
@@ -119,6 +134,9 @@ def run_program_batch(program_id: str, n: int = 3, dry_run: bool = False) -> dic
                        project_tags=match.get("tags", []))
         fit = hook.fit_score(recents[:3], match["name"], match["pitch"])
         rec = recruiting.signal(v.get("homepage") or "")
+        aff_fresh = freshness.affiliation_check(
+            (v.get("affiliations") or [""])[0], rec.get("page_text", ""))
+        act_fresh = freshness.activity_check(recents)
         last = name.split()[-1]
         d = cold_email.build(
             prof_name=name, prof_lastname=last,
@@ -132,7 +150,8 @@ def run_program_batch(program_id: str, n: int = 3, dry_run: bool = False) -> dic
         drafts.append({"prof_name": name, "verify": v, "recruiting": rec,
                        "match": match, "hook": h, "fit": fit, "email": d,
                        "paper": recents[0],
-                       "verification_note": verification_note})
+                       "verification_note": verification_note,
+                       "aff_fresh": aff_fresh, "act_fresh": act_fresh})
 
     for d in drafts:
         v = d["verify"]; rec = d["recruiting"]
@@ -177,6 +196,7 @@ def run_program_batch(program_id: str, n: int = 3, dry_run: bool = False) -> dic
             "=" * 72,
             f"[{i}] {d['prof_name']}  FIT: {d['fit'].get('score','?')}/10  ({d['fit'].get('reason','')})",
             *([f"Note: {d['verification_note']}"] if d.get("verification_note") else []),
+            f"Freshness: {d.get('aff_fresh', {}).get('note', '')}  |  {d.get('act_fresh', {}).get('note', '')}",
             f"Email guess: {d['recruiting'].get('email') or '(verify manually)'}",
             f"Matched project: {d['match']['name']}",
             "",
