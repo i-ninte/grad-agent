@@ -1,0 +1,10 @@
+[Unit]
+Description=grad-agent daily outreach batch (08:00 local)
+
+[Timer]
+OnCalendar=*-*-* 08:00:00
+Persistent=true
+Unit=grad-agent-daily.service
+
+[Install]
+WantedBy=timers.target

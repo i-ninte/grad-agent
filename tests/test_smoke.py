@@ -432,6 +432,35 @@ def test_freshness_checks():
     assert freshness.activity_check([])["active"] is None
 
 
+def test_schedule_emits_template_for_current_os(tmp_path, monkeypatch):
+    """`grad-agent schedule --dest <tmp>` emits the OS-appropriate templates.
+    We invoke cmd_schedule directly so the test is deterministic across the
+    three CI OSes and does not exec the installed console script."""
+    from grad_agent import cli
+    import platform
+    import argparse
+    args = argparse.Namespace(dest=str(tmp_path))
+    rc = cli.cmd_schedule(args)
+    assert rc == 0
+    system = platform.system()
+    if system == "Darwin":
+        assert (tmp_path / "com.gradagent.daily.plist").exists()
+    elif system == "Windows":
+        assert (tmp_path / "grad-agent-daily.xml").exists()
+    else:  # Linux and other POSIX
+        assert (tmp_path / "grad-agent-daily.service").exists()
+        assert (tmp_path / "grad-agent-daily.timer").exists()
+
+
+def test_home_path_is_absolute():
+    """~/.grad-agent resolution must produce an absolute path on every OS.
+    Path.home() handles %USERPROFILE% on Windows; if this ever regresses,
+    the whole package breaks silently."""
+    from grad_agent import config
+    home = config.home()
+    assert home.is_absolute(), f"config.home() returned non-absolute path {home}"
+
+
 def test_sop_versioning(tmp_path):
     from grad_agent.drafters import sop_latex
     kwargs = dict(

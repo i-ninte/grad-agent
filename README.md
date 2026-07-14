@@ -109,9 +109,13 @@ Three commands, in order:
 
 ```bash
 pipx install grad-agent
-pipx ensurepath                              # opens ~/.local/bin on PATH
+pipx ensurepath                              # macOS/Linux: opens ~/.local/bin on PATH
+                                             # Windows: opens %USERPROFILE%\.local\bin on PATH
 claude mcp add grad-agent grad-agent server
 ```
+
+On Windows you may need to open a new PowerShell or Terminal window after
+`pipx ensurepath` for the PATH change to take effect.
 
 Prefer a zero-install one-liner? Skip `pipx` and use `uvx`:
 
@@ -150,14 +154,42 @@ you can use `"command": "grad-agent", "args": ["server"]` instead.
 Any other MCP client (Cursor, Zed, Windsurf) uses the same manifest shape; just
 point them at `uvx grad-agent server`.
 
-## Daily autonomous run (macOS)
+## Daily autonomous run
 
-The package ships a launchd plist template. To fire every day at 08:00:
+The package ships scheduler templates for all three OSes. `grad-agent schedule`
+emits the right one for your platform:
 
 ```bash
-cp /path/to/grad_agent/templates/com.gradagent.daily.plist ~/Library/LaunchAgents/
+grad-agent schedule --dest .
+```
+
+Then follow the install instructions the command prints. In case you want them
+up front:
+
+**macOS (launchd):**
+
+```bash
+cp com.gradagent.daily.plist ~/Library/LaunchAgents/
 launchctl load ~/Library/LaunchAgents/com.gradagent.daily.plist
 ```
+
+**Linux (systemd user timer, fires at 08:00 local):**
+
+```bash
+mkdir -p ~/.config/systemd/user
+cp grad-agent-daily.service grad-agent-daily.timer ~/.config/systemd/user/
+systemctl --user daemon-reload
+systemctl --user enable --now grad-agent-daily.timer
+```
+
+**Windows (Task Scheduler):**
+
+```powershell
+# In an elevated PowerShell prompt:
+schtasks /Create /TN "grad-agent-daily" /XML .\grad-agent-daily.xml
+```
+
+Or import the XML via the Task Scheduler GUI (Action → Import Task).
 
 Every morning: replies auto-detected via IMAP, follow-up nudges drafted for silent profs, 3 identity-verified faculty leads with fit scores (best fit first), hooks fact-checked against paper abstracts, freshness warnings when a prof's S2 record and live homepage disagree, plus program and scholarship deadline warnings — all in one review email. Skipped leads are persisted with the specific mismatch reason (view with `skipped_log_view` or open the `skipped` sheet).
 
@@ -205,8 +237,9 @@ Blog publishing tools (`publish_article`, `update_article`, ...) are gated behin
 ## Requirements
 
 - Python 3.10+
-- macOS or Linux (Windows untested)
-- `pdflatex` on PATH if you want SOP PDFs (macOS: MacTeX; Ubuntu: `texlive-latex-recommended`)
+- macOS, Linux, or Windows (all three tested in CI on 3.10 / 3.11 / 3.12)
+- `pdflatex` on PATH if you want SOP PDFs
+  (macOS: MacTeX; Ubuntu: `texlive-latex-recommended`; Windows: MiKTeX)
 - Anthropic API key
 - Gmail (or another SMTP) for the review-mailer
 

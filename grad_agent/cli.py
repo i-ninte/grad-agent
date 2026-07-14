@@ -148,6 +148,54 @@ def cmd_path(_: argparse.Namespace) -> int:
     return 0
 
 
+def cmd_schedule(args: argparse.Namespace) -> int:
+    """Emit the OS-appropriate daily-schedule template and install instructions."""
+    import platform
+    from pathlib import Path
+    tmpl_dir = config.TEMPLATES
+    system = platform.system()
+
+    if args.dest:
+        dest = Path(args.dest).expanduser().resolve()
+    else:
+        dest = Path.cwd()
+    dest.mkdir(parents=True, exist_ok=True)
+
+    if system == "Darwin":
+        src = tmpl_dir / "com.gradagent.daily.plist"
+        out = dest / src.name
+        out.write_text(src.read_text())
+        print(f"wrote {out}\n")
+        print("Install:")
+        print(f"  cp {out} ~/Library/LaunchAgents/")
+        print(f"  launchctl load ~/Library/LaunchAgents/{src.name}")
+        return 0
+
+    if system == "Windows":
+        src = tmpl_dir / "grad-agent-daily.xml"
+        out = dest / src.name
+        # Task Scheduler wants UTF-16 XML; the template is already the correct shape.
+        out.write_bytes(src.read_bytes())
+        print(f"wrote {out}\n")
+        print("Install (run in an elevated PowerShell):")
+        print(f'  schtasks /Create /TN "grad-agent-daily" /XML "{out}"')
+        print("Or via the Task Scheduler UI: Action, Import Task, select the XML.")
+        return 0
+
+    # Linux (and other POSIX)
+    for name in ("grad-agent-daily.service", "grad-agent-daily.timer"):
+        src = tmpl_dir / name
+        out = dest / name
+        out.write_text(src.read_text())
+        print(f"wrote {out}")
+    print("\nInstall:")
+    print("  mkdir -p ~/.config/systemd/user")
+    print(f"  cp {dest}/grad-agent-daily.* ~/.config/systemd/user/")
+    print("  systemctl --user daemon-reload")
+    print("  systemctl --user enable --now grad-agent-daily.timer")
+    return 0
+
+
 def cmd_cache(args: argparse.Namespace) -> int:
     from .sources import semantic_scholar as s2
     if args.cache_cmd == "clear":
@@ -189,6 +237,14 @@ def main(argv: list[str] | None = None) -> int:
 
     p_path = sub.add_parser("path", help="Print GRAD_AGENT_HOME")
     p_path.set_defaults(func=cmd_path)
+
+    p_sched = sub.add_parser("schedule",
+                             help="Emit the OS-appropriate daily-schedule template "
+                                  "(launchd on macOS, Task Scheduler XML on Windows, "
+                                  "systemd user timer on Linux)")
+    p_sched.add_argument("--dest", default="",
+                         help="Directory to write templates to (defaults to CWD)")
+    p_sched.set_defaults(func=cmd_schedule)
 
     p_cache = sub.add_parser("cache", help="Manage the Semantic Scholar cache")
     p_cache.add_argument("cache_cmd", choices=["clear"])

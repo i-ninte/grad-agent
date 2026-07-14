@@ -1,0 +1,15 @@
+# systemd --user service. Install with:
+#   mkdir -p ~/.config/systemd/user
+#   cp grad-agent-daily.service ~/.config/systemd/user/
+#   cp grad-agent-daily.timer   ~/.config/systemd/user/
+#   systemctl --user daemon-reload
+#   systemctl --user enable --now grad-agent-daily.timer
+
+[Unit]
+Description=grad-agent daily outreach batch
+
+[Service]
+Type=oneshot
+ExecStart=%h/.local/bin/grad-agent run -n 3
+StandardOutput=append:%h/.grad-agent/daily.log
+StandardError=append:%h/.grad-agent/daily.err.log
