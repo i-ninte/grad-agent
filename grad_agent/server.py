@@ -103,11 +103,11 @@ def draft_cold_email(target_id: int, prof_name: str, prof_lastname: str,
                      target_term: str = "Fall 2027",
                      degree: str = "PhD") -> dict:
     """Draft a cold email. Saves to drafts/, returns preview + banned_hits."""
-    d = cold_email.build(
+    d = cold_email.build_from_hook(
         prof_name=prof_name, prof_lastname=prof_lastname, university=university,
-        their_paper_title=their_paper_title, their_paper_takeaway=their_paper_takeaway,
+        their_paper_title=their_paper_title,
+        substantive_hook=their_paper_takeaway or your_one_line_connection or "",
         your_project_name=your_project_name, your_project_link=your_project_link,
-        your_one_line_connection=your_one_line_connection,
         target_term=target_term, degree=degree,
     )
     slug = f"{university}_{prof_lastname}".replace(" ", "_")

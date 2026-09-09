@@ -167,7 +167,7 @@ def run_batch(n: int = 3, area: str | None = None, dry_run: bool = False) -> dic
         prog_hits = programs.match_faculty(prof_full)
         prog_line = prog_hits[0]["id"] if prog_hits else ""
 
-        d = cold_email.build(
+        d = cold_email.build_from_hook(
             prof_name=prof_full, prof_lastname=prof_last,
             university=v.get("affiliations", [""])[0] if v.get("affiliations") else "",
             their_paper_title=recents[0].get("title",""),

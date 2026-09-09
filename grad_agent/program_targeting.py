@@ -138,7 +138,7 @@ def run_program_batch(program_id: str, n: int = 3, dry_run: bool = False) -> dic
             (v.get("affiliations") or [""])[0], rec.get("page_text", ""))
         act_fresh = freshness.activity_check(recents)
         last = name.split()[-1]
-        d = cold_email.build(
+        d = cold_email.build_from_hook(
             prof_name=name, prof_lastname=last,
             university=prog.get("university", ""),
             their_paper_title=recents[0].get("title", ""),
