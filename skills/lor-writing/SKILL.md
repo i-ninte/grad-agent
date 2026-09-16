@@ -101,8 +101,33 @@ Two to three sentences connecting the applicant's demonstrated behaviour to what
 2. Match the recommender's actual voice. If you have prior writing by them (a letter they signed for someone else, LinkedIn, blog posts), read it first and mirror sentence length and diction.
 3. Draft. Run the banned-phrase sweep.
 4. Verify every specific in the letter can be corroborated if the committee calls the recommender. If not, remove it.
-5. Send the draft to the recommender with a short note explaining what to change and why. Never send it as a fait accompli.
-6. Hand off to `essay-compile` for LaTeX preamble, dash sweep, PDF compile.
+5. **Preview before send.** When the applicant is doing the final review, render the PDF and open it locally (`open <pdf>` on macOS) BEFORE mailing. Do not send until the applicant explicitly says "send it." Corrections cost far more once the file is out the door.
+6. Send the draft to the recommender with a short note explaining what to change and why. Never send it as a fait accompli.
+7. Hand off to `essay-compile` for LaTeX preamble, dash sweep, PDF compile.
+
+## Multi-letter differentiation (when the applicant sends 2+ LORs to the same programme)
+
+Committees read the letters for the same applicant together. If two of them share phrasing, structural moves, or signature anecdote framings, the reader will infer one ghostwriter and both letters lose credibility. Treat differentiation as a first-class requirement, not a stylistic nicety.
+
+Concrete rules:
+
+1. **No shared phrase templates.** If letter A opens the comparative paragraph with "For context, X is a young Ghanaian…" letter B must open its comparative differently in wording and structure. Same for the recommendation close ("I recommend … without reservation. Please feel free to contact me at …") — vary both the recommendation clause and the contact clause.
+2. **No shared anecdote framings.** If letter A uses "I pushed back on his X in review; he came back with the ablation" as its evaluation-first proof, letter B cannot reuse the pushback-then-ablation shape even with different technical detail. Pick a different behavioural window (a client interaction, a design tradeoff, a workflow choice for the end user).
+3. **Different comparative anchors.** Letter A: "top handful in our hiring pool." Letter B: "strongest contract engineer on this class of engagement." Never repeat the exact peer set framing.
+4. **Different faculty and programme-fit sentences.** Rewrite the "why this programme" close in each letter using a different rhetorical move (needs-list vs. becomes-list vs. what-the-programme-lets-him-build).
+5. **Match each recommender to what they credibly know.** A hiring CTO can vouch for engineering discipline. A contract CTO can vouch for delivery under a tight window and cross-stack range. A professor can vouch for research question selection. Do not push a claim to a recommender who could not have observed it.
+6. Before shipping the second letter, diff the two side by side and flag any sentence over ~10 words that appears in both. Rewrite one.
+
+## Recommender realism (what to leave out even when it strengthens the letter)
+
+Drop anything the specific recommender in real life would not know or bother to say, even if it would technically make the letter stronger:
+
+- **Faculty names at the target programme.** A busy industry CTO who has not been in academic circles will not name-drop three faculty and their subareas. Referring to "a research-focused department" or "the coursework in multilingual NLP" reads truer.
+- **Programme structural jargon.** Only cite thesis-based / required-internship / dedicated-compute if the recommender plausibly researched the programme.
+- **Sector or business-model context** the recommender was not asked for. If the applicant only said "you don't need to describe the company," strip framing lines like "X is a SaaS company" or "X operates across region Y." Context that the recommender would not volunteer reads as ghostwritten.
+- **Papers the recommender did not read.** Never claim admiration for a target-programme professor's paper in a recommender letter.
+
+When in doubt, ask: "Would this specific recommender actually say this at their desk in 15 minutes?" If not, cut.
 
 ## Sources encoded in this skill
 
