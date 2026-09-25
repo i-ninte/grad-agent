@@ -3,7 +3,7 @@
   "name": "io.github.i-ninte/grad-agent",
   "title": "grad-agent",
   "description": "Autonomous MCP agent for grad school applications: prof discovery, cold emails, SOP, tracking.",
-  "version": "0.2.5",
+  "version": "0.2.9",
   "repository": {
     "url": "https://github.com/i-ninte/grad-agent",
     "source": "github"
@@ -13,7 +13,7 @@
       "registryType": "pypi",
       "registryBaseUrl": "https://pypi.org",
       "identifier": "grad-agent",
-      "version": "0.2.5",
+      "version": "0.2.9",
       "runtimeHint": "uvx",
       "transport": {
         "type": "stdio"
@@ -74,6 +74,15 @@
           "name": "GRAD_AGENT_HOME",
           "description": "Optional. Override the default ~/.grad-agent/ location for profile, programs, secrets, and data.",
           "default": "~/.grad-agent"
+        },
+        {
+          "name": "LOR_LETTERHEAD_PATH",
+          "description": "Optional. Absolute path to a letterhead / company logo image (.png / .jpg / .pdf) embedded at the top of Letters of Recommendation during LaTeX compile. Leave unset for a plain top block. Can also be set at runtime via the `set_letterhead` MCP tool."
+        },
+        {
+          "name": "LOR_LETTERHEAD_WIDTH",
+          "description": "Optional. LaTeX length for the letterhead image width (e.g. '2.5in'). Used only when LOR_LETTERHEAD_PATH is set.",
+          "default": "2.2in"
         }
       ]
     }
