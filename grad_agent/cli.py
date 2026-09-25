@@ -1,20 +1,82 @@
 """grad-agent CLI.
 
 Subcommands:
-  init          Interactive setup: writes ~/.grad-agent/profile.yaml + .env
-  server        Start the MCP stdio server (for `claude mcp add`).
-  run           Run today's outreach batch and email the review inbox.
-  sync          Sync catalog from GitHub + HuggingFace + local projects_dir.
-  register-claude  Print the `claude mcp add` command tailored to this install.
-  path          Print resolved GRAD_AGENT_HOME.
+  init            Interactive setup: writes ~/.grad-agent/profile.yaml + .env
+  server          Start the MCP stdio server (for `claude mcp add`).
+  run             Run today's outreach batch and email the review inbox.
+  sync            Sync catalog from GitHub + HuggingFace + local projects_dir.
+  register-claude Print the `claude mcp add` command tailored to this install.
+  install-skills  Link bundled skills into ~/.claude/skills/ (Claude Code).
+  path            Print resolved GRAD_AGENT_HOME.
 """
 from __future__ import annotations
 import argparse
+import os
 import shutil
 import sys
 from pathlib import Path
 
 from . import config
+
+
+def _bundled_skills_dir() -> Path:
+    pkg = Path(__file__).parent / "skills"
+    if pkg.exists():
+        return pkg
+    return pkg.parent.parent / "skills"
+
+
+def install_skills(target_dir: Path | None = None, force: bool = False, quiet: bool = False) -> list[str]:
+    """Symlink each bundled skill into `target_dir` (default `~/.claude/skills/`).
+
+    Falls back to copytree on filesystems where symlink is unavailable
+    (e.g. Windows without developer mode). Existing symlinks to the
+    bundled path are refreshed; existing real directories are left alone
+    unless `force=True`.
+
+    Returns the list of skill names that were installed or refreshed.
+    """
+    src = _bundled_skills_dir()
+    if not src.exists():
+        return []
+    target = target_dir or (Path.home() / ".claude" / "skills")
+    target.mkdir(parents=True, exist_ok=True)
+    installed: list[str] = []
+    for skill_dir in sorted(p for p in src.iterdir() if p.is_dir()):
+        dst = target / skill_dir.name
+        try:
+            if dst.is_symlink():
+                dst.unlink()
+            elif dst.exists():
+                if not force:
+                    if not quiet:
+                        print(f"skip: {dst} already exists (use --force to overwrite)")
+                    continue
+                if dst.is_dir():
+                    shutil.rmtree(dst)
+                else:
+                    dst.unlink()
+            try:
+                os.symlink(skill_dir, dst, target_is_directory=True)
+            except (OSError, NotImplementedError):
+                shutil.copytree(skill_dir, dst)
+            installed.append(skill_dir.name)
+            if not quiet:
+                print(f"installed skill: {dst} -> {skill_dir}")
+        except Exception as e:
+            if not quiet:
+                print(f"warn: could not install {skill_dir.name}: {e}", file=sys.stderr)
+    return installed
+
+
+def cmd_install_skills(args: argparse.Namespace) -> int:
+    target = Path(args.target).expanduser() if args.target else None
+    installed = install_skills(target_dir=target, force=args.force)
+    if not installed:
+        print("No skills were installed.")
+        return 1
+    print(f"\nDone. Restart Claude Code / Claude Desktop to pick up: {', '.join(installed)}")
+    return 0
 
 
 def _prompt(label: str, default: str = "") -> str:
@@ -71,6 +133,13 @@ def cmd_init(args: argparse.Namespace) -> int:
         prof["review_email"] = _prompt("Review inbox (where drafts land)", prof.get("review_email", ""))
         profile_dst.write_text(yaml.safe_dump(prof, sort_keys=False))
         print(f"\nupdated {profile_dst}")
+
+    try:
+        installed = install_skills(quiet=True)
+        if installed:
+            print(f"linked skills into ~/.claude/skills/: {', '.join(installed)}")
+    except Exception as e:
+        print(f"warn: skill auto-install skipped: {e}", file=sys.stderr)
 
     print("\nNext steps:")
     print(f"  1. Fill in secrets in {env_dst} (ANTHROPIC_API_KEY, SMTP_*)")
@@ -237,6 +306,16 @@ def main(argv: list[str] | None = None) -> int:
 
     p_path = sub.add_parser("path", help="Print GRAD_AGENT_HOME")
     p_path.set_defaults(func=cmd_path)
+
+    p_skills = sub.add_parser(
+        "install-skills",
+        help="Symlink bundled skills (lor-writing, sop-writing) into ~/.claude/skills/",
+    )
+    p_skills.add_argument("--target", default="",
+                          help="Override target dir (default: ~/.claude/skills)")
+    p_skills.add_argument("--force", action="store_true",
+                          help="Replace existing non-symlink entries with the same name")
+    p_skills.set_defaults(func=cmd_install_skills)
 
     p_sched = sub.add_parser("schedule",
                              help="Emit the OS-appropriate daily-schedule template "
