@@ -85,6 +85,54 @@ def _prompt(label: str, default: str = "") -> str:
     return v or default
 
 
+def _update_env_var(env_path: Path, key: str, value: str) -> None:
+    """Set KEY=VALUE in a dotenv file, preserving order and other lines.
+
+    Replaces the existing (commented or uncommented) line for `key`, or
+    appends `KEY=VALUE` at the end if no line exists. Empty `value`
+    removes the setting by commenting it out. Idempotent.
+    """
+    env_path.parent.mkdir(parents=True, exist_ok=True)
+    lines = env_path.read_text().splitlines() if env_path.exists() else []
+    new_line = f"{key}={value}" if value else f"# {key}="
+    hit = False
+    out = []
+    import re
+    pat = re.compile(rf"^\s*#?\s*{re.escape(key)}\s*=")
+    for ln in lines:
+        if pat.match(ln) and not hit:
+            out.append(new_line)
+            hit = True
+        else:
+            out.append(ln)
+    if not hit:
+        out.append(new_line)
+    env_path.write_text("\n".join(out) + "\n")
+
+
+def cmd_set_letterhead(args: argparse.Namespace) -> int:
+    env_dst = config.env_path()
+    if not env_dst.exists():
+        print(f"error: {env_dst} not found. Run `grad-agent init` first.", file=sys.stderr)
+        return 1
+    path_val = args.path.strip() if args.path else ""
+    if path_val:
+        p = Path(path_val).expanduser()
+        if not p.exists():
+            print(f"warn: {p} does not exist yet (saving the path anyway)", file=sys.stderr)
+        path_val = str(p)
+    _update_env_var(env_dst, "LOR_LETTERHEAD_PATH", path_val)
+    if args.width:
+        _update_env_var(env_dst, "LOR_LETTERHEAD_WIDTH", args.width.strip())
+    if path_val:
+        print(f"LOR_LETTERHEAD_PATH set to {path_val}")
+    else:
+        print("LOR_LETTERHEAD_PATH cleared (plain top block on next compile)")
+    if args.width:
+        print(f"LOR_LETTERHEAD_WIDTH set to {args.width}")
+    return 0
+
+
 def cmd_init(args: argparse.Namespace) -> int:
     home = config.ensure_home()
     print(f"Setting up grad-agent at {home}\n")
@@ -133,6 +181,19 @@ def cmd_init(args: argparse.Namespace) -> int:
         prof["review_email"] = _prompt("Review inbox (where drafts land)", prof.get("review_email", ""))
         profile_dst.write_text(yaml.safe_dump(prof, sort_keys=False))
         print(f"\nupdated {profile_dst}")
+
+        lh_path = _prompt(
+            "Path to letterhead/logo image for LOR compile (png/jpg/pdf, blank to skip)",
+            "",
+        )
+        if lh_path:
+            lh_expanded = str(Path(lh_path).expanduser())
+            if not Path(lh_expanded).exists():
+                print(f"  warn: {lh_expanded} does not exist yet (saving the path anyway)")
+            _update_env_var(env_dst, "LOR_LETTERHEAD_PATH", lh_expanded)
+            lh_width = _prompt("Letterhead width (LaTeX length)", "2.2in")
+            _update_env_var(env_dst, "LOR_LETTERHEAD_WIDTH", lh_width)
+            print(f"updated {env_dst} with LOR_LETTERHEAD_PATH / LOR_LETTERHEAD_WIDTH")
 
     try:
         installed = install_skills(quiet=True)
@@ -316,6 +377,16 @@ def main(argv: list[str] | None = None) -> int:
     p_skills.add_argument("--force", action="store_true",
                           help="Replace existing non-symlink entries with the same name")
     p_skills.set_defaults(func=cmd_install_skills)
+
+    p_lh = sub.add_parser(
+        "set-letterhead",
+        help="Write LOR_LETTERHEAD_PATH into ~/.grad-agent/.env (blank path clears it)",
+    )
+    p_lh.add_argument("path", nargs="?", default="",
+                      help="Absolute path to letterhead image (png/jpg/pdf). Omit or empty to clear.")
+    p_lh.add_argument("--width", default="",
+                      help="LaTeX length for the letterhead width, e.g. 2.5in (optional)")
+    p_lh.set_defaults(func=cmd_set_letterhead)
 
     p_sched = sub.add_parser("schedule",
                              help="Emit the OS-appropriate daily-schedule template "

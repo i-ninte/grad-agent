@@ -365,5 +365,83 @@ def lor_mark(recommender: str, school: str, field: str, value: str = "") -> dict
     return {"updated": ok}
 
 
+@mcp.tool()
+def install_skills(target: str = "", force: bool = False) -> dict:
+    """Symlink the bundled `lor-writing` and `sop-writing` skills into
+    ~/.claude/skills/ so Claude Code / Claude Desktop pick them up.
+
+    Falls back to copy on filesystems without symlink support (Windows
+    without developer mode). Existing symlinks are refreshed; existing
+    real directories are skipped unless `force=True`.
+
+    Args:
+      target: override destination dir (default: ~/.claude/skills).
+      force:  replace existing non-symlink entries with the same name.
+    """
+    from .cli import install_skills as _install
+    dst = Path(target).expanduser() if target else None
+    installed = _install(target_dir=dst, force=force, quiet=True)
+    return {
+        "ok": True,
+        "installed": installed,
+        "target": str(dst or (Path.home() / ".claude" / "skills")),
+        "note": "Restart Claude Code / Claude Desktop to pick up the skills.",
+    }
+
+
+@mcp.tool()
+def set_letterhead(path: str = "", width: str = "") -> dict:
+    """Set (or clear) the letterhead / company logo used when compiling
+    a Letter of Recommendation to LaTeX.
+
+    Writes LOR_LETTERHEAD_PATH and (optionally) LOR_LETTERHEAD_WIDTH into
+    the user's dotenv at ~/.grad-agent/.env. Pass `path=""` to clear it
+    (next compile emits a plain top block the recommender can paste onto
+    their own letterhead). This is the recommended way to swap letterheads
+    per recommender.
+
+    Args:
+      path:  absolute path to the letterhead image (.png / .jpg / .pdf).
+             Empty string clears the setting.
+      width: optional LaTeX length for the letterhead (e.g. "2.5in").
+             Empty string leaves the current width untouched.
+    """
+    from .cli import _update_env_var
+    env_dst = _cfg.env_path()
+    if not env_dst.exists():
+        return {"ok": False, "error": f"{env_dst} not found — run `grad-agent init` first"}
+    resolved = ""
+    exists = None
+    if path:
+        p = Path(path).expanduser()
+        resolved = str(p)
+        exists = p.exists()
+    _update_env_var(env_dst, "LOR_LETTERHEAD_PATH", resolved)
+    if width:
+        _update_env_var(env_dst, "LOR_LETTERHEAD_WIDTH", width)
+    return {
+        "ok": True,
+        "letterhead_path": resolved,
+        "letterhead_width": width or None,
+        "path_exists_on_disk": exists,
+        "env_file": str(env_dst),
+        "cleared": resolved == "",
+    }
+
+
+@mcp.tool()
+def get_letterhead() -> dict:
+    """Return the currently configured letterhead settings from ~/.grad-agent/.env."""
+    _cfg.load_env_file()
+    path = os.environ.get("LOR_LETTERHEAD_PATH", "").strip()
+    width = os.environ.get("LOR_LETTERHEAD_WIDTH", "").strip() or "2.2in"
+    return {
+        "letterhead_path": path,
+        "letterhead_width": width,
+        "path_exists_on_disk": bool(path) and Path(path).exists() if path else None,
+        "using_letterhead": bool(path),
+    }
+
+
 if __name__ == "__main__":
     mcp.run()
