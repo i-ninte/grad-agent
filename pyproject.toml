@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "grad-agent"
-version = "0.2.5"
+version = "0.2.6"
 description = "Autonomous MCP agent for graduate school applications: prof discovery + verified cold emails + SOP drafting + application tracking."
 readme = "README.md"
 requires-python = ">=3.10"
@@ -52,5 +52,8 @@ grad-agent = "grad_agent.cli:main"
 [tool.hatch.build.targets.wheel]
 packages = ["grad_agent"]
 
+[tool.hatch.build.targets.wheel.force-include]
+"skills" = "grad_agent/skills"
+
 [tool.hatch.build.targets.sdist]
-include = ["grad_agent", "tests", "README.md", "LICENSE", "pyproject.toml"]
+include = ["grad_agent", "skills", "tests", "README.md", "LICENSE", "pyproject.toml"]
