@@ -69,6 +69,8 @@ Two to three sentences connecting the applicant's demonstrated behaviour to what
 - 11 pt, 1-inch margins. Recommender's letterhead if available. If drafting a version for the recommender to paste onto letterhead, keep the top block plain so it drops in cleanly.
 - No em dashes, en dashes, or hyphens as clause separators (essay-compile rule).
 
+**Letterhead / company logo (LaTeX compile).** The `.env` variable `LOR_LETTERHEAD_PATH` points at an image file (`.png`, `.jpg`, or `.pdf`) to embed at the top of the letter. When set, the LaTeX template drops in `\includegraphics[width=<<LOR_LETTERHEAD_WIDTH>>]{<<LOR_LETTERHEAD_PATH>>}` above the recommender's header block; width defaults to `2.2in` and is overridable via `LOR_LETTERHEAD_WIDTH`. When unset, the compile emits a plain top block so the recommender can paste it onto their own letterhead after signing. The template must reference the image via a placeholder like `<<LETTERHEAD_BLOCK>>` that resolves to either the `\includegraphics{...}` line or an empty string — never hardcode a path.
+
 ### 8. Voice — human, not corporate
 
 - Short direct sentences. First person from the recommender.

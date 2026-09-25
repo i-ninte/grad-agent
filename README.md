@@ -30,6 +30,14 @@ An autonomous MCP agent that helps you apply to fully funded MS and PhD programs
 - Tracks outreach, LOR requests, program deadlines, and external scholarships (Mastercard, Commonwealth, Fulbright, Rhodes, and more) in xlsx/yaml
 - Emails every draft to your inbox for review; nothing is ever sent to a professor without you
 
+**Bundled Claude Code / Claude Desktop skills**
+
+Installing `grad-agent` ships a set of Anthropic Skills you can invoke from any Claude client that supports them (Claude Code, Claude Desktop, MCP-aware IDEs). They live under `grad_agent/skills/` inside the installed package.
+
+- **`sop-writing`** — rules for MS/PhD Statement of Purpose drafting, synthesized from MIT CommLab, MIT CAPD, Berkeley Grad Div, Harvard GSAS, Stanford, and CS-faculty guides. Pairs with the LaTeX SOP compile step.
+- **`lor-writing`** — rules for letters of recommendation, including the common case where the applicant ghost-drafts a letter for a recommender to sign. Encodes multi-letter differentiation, recommender realism, HHMI bias hygiene, and a banned-phrase regex sweep. Supports an optional letterhead / company logo via the `LOR_LETTERHEAD_PATH` env var (with `LOR_LETTERHEAD_WIDTH`, default `2.2in`) so the LaTeX compile drops your image into the top of the letter — leave it unset for a plain top block the recommender can paste onto their own letterhead.
+- Cold-email drafter (`grad_agent/drafters/cold_email.py`) — rewritten around PhD outreach best-practices (specific paper anchor, one concrete overlap, no un-anchored superlatives, no "I read your paper" claims).
+
 Runs as a stdio MCP server for Claude Code / Claude Desktop / any MCP client, or as a plain CLI.
 
 Published on:
